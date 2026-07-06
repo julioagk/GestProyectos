@@ -1,0 +1,18 @@
+{
+  "name": "gestion-de-proyectos",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "build:api": "npm --workspace apps/api run build",
+    "start:api": "npm --workspace apps/api run start:prod",
+    "build:web": "npm --workspace apps/web run build",
+    "start:web": "npm --workspace apps/web run start",
+    "dev:api": "npm --workspace apps/api run start:dev",
+    "dev:web": "npm --workspace apps/web run dev",
+    "build": "npm run build:api",
+    "start": "npm run start:api"
+  }
+}
