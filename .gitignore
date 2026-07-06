@@ -16,3 +16,6 @@
 # misc
 .DS_Store
 *.tsbuildinfo
+
+# root lockfile (generated per-platform, causes native binary issues across OS)
+/package-lock.json
