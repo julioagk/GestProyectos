@@ -55,7 +55,7 @@ const defaultProjectStages = [
 ];
 
 export default function ProjectsPage() {
-  const { accessToken } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
   const { confirm, showToast } = useDialog();
   const [projects, setProjects] = useState<Project[]>([]);
   const [viewMode, setViewMode] = useState<'GRID' | 'STAGES'>('GRID');
@@ -79,16 +79,17 @@ export default function ProjectsPage() {
   const [teamId, setTeamId] = useState('');
   const [teams, setTeams] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const canSeeCompanies = user?.role !== 'EMPLOYEE';
 
   useEffect(() => {
     if (isModalOpen) {
-      if (selectedCompanyId !== 'ALL') {
+      if (canSeeCompanies && selectedCompanyId !== 'ALL') {
         setTeamId(selectedCompanyId);
       } else {
         setTeamId('');
       }
     }
-  }, [isModalOpen, selectedCompanyId]);
+  }, [isModalOpen, selectedCompanyId, canSeeCompanies]);
 
   const fetchProjects = async () => {
     try {
@@ -279,9 +280,11 @@ export default function ProjectsPage() {
   useEffect(() => {
     if (accessToken) {
       fetchProjects();
-      fetchTeams();
+      if (canSeeCompanies) {
+        fetchTeams();
+      }
     }
-  }, [accessToken]);
+  }, [accessToken, canSeeCompanies]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -416,7 +419,7 @@ export default function ProjectsPage() {
             <Tag size={10} className="text-emerald-400" />
             <span>{project._count?.tasks || 0} tareas</span>
           </div>
-          {project.team && (
+          {canSeeCompanies && project.team && (
             <div className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-slate-950 border border-slate-900 max-w-[110px]">
               <Building size={9} className="shrink-0" />
               <span className="truncate">{project.team.name}</span>
@@ -517,36 +520,37 @@ export default function ProjectsPage() {
         </button>
       </div>
 
-      {/* Selector de Empresa */}
-      <div className="space-y-2">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ver Proyectos de:</span>
-        <div className="flex gap-2 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-900 scrollbar-track-transparent">
-          <button
-            onClick={() => setSelectedCompanyId('ALL')}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap ${
-              selectedCompanyId === 'ALL'
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-md shadow-emerald-500/5'
-                : 'bg-slate-950/40 text-slate-400 border-slate-900 hover:border-slate-800 hover:text-slate-205'
-            }`}
-          >
-            Todos los Proyectos
-          </button>
-          {teams.map((t) => (
+      {canSeeCompanies && (
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ver Proyectos de:</span>
+          <div className="flex gap-2 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-900 scrollbar-track-transparent">
             <button
-              key={t.id}
-              onClick={() => setSelectedCompanyId(t.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                selectedCompanyId === t.id
+              onClick={() => setSelectedCompanyId('ALL')}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap ${
+                selectedCompanyId === 'ALL'
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-md shadow-emerald-500/5'
                   : 'bg-slate-950/40 text-slate-400 border-slate-900 hover:border-slate-800 hover:text-slate-205'
               }`}
             >
-              <Building size={12} />
-              {t.name}
+              Todos los Proyectos
             </button>
-          ))}
+            {teams.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedCompanyId(t.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  selectedCompanyId === t.id
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-md shadow-emerald-500/5'
+                    : 'bg-slate-950/40 text-slate-400 border-slate-900 hover:border-slate-800 hover:text-slate-205'
+                }`}
+              >
+                <Building size={12} />
+                {t.name}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Projects List */}
       {isLoading ? (
@@ -656,6 +660,10 @@ export default function ProjectsPage() {
             <Plus size={14} />
             Agregar Etapa
           </button>
+        </div>
+      ) : !canSeeCompanies ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project) => renderProjectCard(project))}
         </div>
       ) : selectedCompanyId === 'ALL' ? (
         <div className="space-y-10">

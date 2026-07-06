@@ -37,6 +37,7 @@ interface Project {
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuthStore();
+  const canSeeCompanies = user?.role !== 'EMPLOYEE';
   const [stats, setStats] = useState({
     activeProjects: 0,
     pendingTasks: 0,
@@ -137,7 +138,7 @@ export default function DashboardPage() {
     { name: 'Tareas Pendientes', value: stats.pendingTasks, icon: CheckSquare, color: 'from-teal-400 to-cyan-500', description: 'Tareas por completar' },
     { name: 'Empresas registradas', value: stats.totalTeams, icon: Users, color: 'from-emerald-500 to-teal-600', description: 'Empresas de clientes' },
     { name: 'Tareas Vencidas', value: stats.overdueTasks, icon: Clock, color: 'from-amber-500 to-orange-500', description: 'Fuera de fecha límite' },
-  ];
+  ].filter((card) => canSeeCompanies || card.name !== 'Empresas registradas');
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">

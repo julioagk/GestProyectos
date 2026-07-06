@@ -52,7 +52,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
 
-    // 5. Crear empresa y usuario administrador en una transacción
+    // 5. Crear empresa y usuario gestor en una transacción
     const result = await this.prisma.$transaction(async (tx) => {
       const newCompany = await tx.company.create({
         data: {
@@ -68,7 +68,7 @@ export class AuthService {
           passwordHash,
           firstName: dto.firstName,
           lastName: dto.lastName,
-          role: Role.COMPANY_ADMIN,
+          role: Role.MANAGER,
           companyId: newCompany.id,
         },
       });

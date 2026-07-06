@@ -70,7 +70,7 @@ export default function RegisterPage() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-slate-200 to-slate-400">
-          Crea una cuenta para tu Empresa
+          Crea una cuenta de Gestor
         </h2>
         <p className="mt-2 text-center text-sm text-slate-400">
           ¿Ya tienes cuenta?{' '}
@@ -204,7 +204,7 @@ export default function RegisterPage() {
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
                   <>
-                    Crear Empresa y Cuenta
+                    Crear Cuenta de Gestor
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}

@@ -26,6 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const canSeeCompanies = user?.role !== 'EMPLOYEE';
 
   // Cargar sesión del localStorage
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Proyectos', href: '/dashboard/projects', icon: FolderKanban },
-    { name: 'Empresas', href: '/dashboard/teams', icon: Users },
+    ...(canSeeCompanies ? [{ name: 'Empresas', href: '/dashboard/teams', icon: Users }] : []),
     { name: 'Calendario', href: '/dashboard/calendar', icon: Calendar },
     { name: 'Configuración', href: '/dashboard/settings', icon: Settings },
   ];
@@ -137,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {user.firstName} {user.lastName}
                   </h4>
                   <p className="text-[10px] text-slate-500 truncate">
-                    {user.role === 'COMPANY_ADMIN' ? 'Administrador' : 'Colaborador'}
+                    {user.role === 'MANAGER' ? 'Gestor' : user.role === 'COMPANY_ADMIN' ? 'Administrador' : 'Colaborador'}
                   </p>
                 </div>
               )}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
   Users,
@@ -35,6 +36,7 @@ interface Team {
 }
 
 export default function TeamsPage() {
+  const router = useRouter();
   const { accessToken, user } = useAuthStore();
   const { confirm, showToast } = useDialog();
   const [teams, setTeams] = useState<Team[]>([]);
@@ -66,6 +68,13 @@ export default function TeamsPage() {
   const [memberRole, setMemberRole] = useState('EMPLOYEE');
   const [showMemberModalPassword, setShowMemberModalPassword] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const canSeeCompanies = user?.role !== 'EMPLOYEE';
+
+  useEffect(() => {
+    if (user && !canSeeCompanies) {
+      router.replace('/dashboard');
+    }
+  }, [user, canSeeCompanies, router]);
 
   const fetchTeams = async () => {
     try {
@@ -94,10 +103,19 @@ export default function TeamsPage() {
   };
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && canSeeCompanies) {
       fetchTeams();
     }
-  }, [accessToken]);
+  }, [accessToken, canSeeCompanies]);
+
+  if (!canSeeCompanies) {
+    return (
+      <div className="py-24 flex flex-col justify-center items-center text-slate-500 text-sm gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        <span>Redirigiendo...</span>
+      </div>
+    );
+  }
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
