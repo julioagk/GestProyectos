@@ -1,0 +1,18 @@
+# dependencies
+**/node_modules/
+
+# build output
+**/.next/
+**/dist/
+**/build/
+**/coverage/
+**/*.db
+
+# env files
+**/.env
+**/.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.tsbuildinfo
