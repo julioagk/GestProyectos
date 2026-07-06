@@ -18,6 +18,7 @@ Deploy the frontend on Vercel and the backend on Railway, starting from a clean 
    - `npm run build`
 6. Start command:
    - `npm start`
+   - The API entrypoint is compiled to `apps/api/dist/src/main.js`
 7. After the first deploy, run Prisma against the Railway database:
    - `npx prisma db push`
    - `npx prisma generate`
