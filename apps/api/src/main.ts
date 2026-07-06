@@ -4,12 +4,14 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const allowedOrigins = [frontendUrl, 'http://localhost:3000', 'http://localhost:3001'];
 
   // Habilitar CORS para permitir peticiones desde el frontend (localhost:3001 / localhost:3000)
   app.enableCors({
-    origin: '*', // En producción se debe restringir al frontendURL
+    origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
+    credentials: false,
   });
 
   // Habilitar la validación global de DTOs con class-validator
