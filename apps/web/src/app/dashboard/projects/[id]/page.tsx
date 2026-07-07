@@ -1721,6 +1721,17 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                               }),
                             });
                             if (res.ok) {
+                              await fetch(`${apiUrl}/tasks/${selectedTask.id}/comments`, {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  Authorization: `Bearer ${accessToken}`,
+                                },
+                                body: JSON.stringify({
+                                  content: `💚 **ENTREGA ACEPTADA:** El gestor aprobó la entrega. Tarea marcada como **Completada**.`,
+                                }),
+                              });
+
                               showToast('Entrega aceptada. Tarea completada con éxito', 'success');
                               setIsDrawerOpen(false);
                               fetchProjectData();
