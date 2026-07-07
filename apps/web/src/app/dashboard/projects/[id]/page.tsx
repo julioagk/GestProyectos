@@ -1852,7 +1852,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             </div>
 
             {/* Chat de comentarios visible por defecto (No oculto) */}
-            <div className="border-t border-slate-800/80 pt-4 flex-1 flex flex-col overflow-hidden space-y-3">
+            <div className="border-t border-slate-800 pt-5 flex flex-col space-y-4">
               <div className="flex items-center gap-1.5 px-1">
                 <MessageSquare size={13} className="text-emerald-500" />
                 <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Chat de la Tarea</span>
