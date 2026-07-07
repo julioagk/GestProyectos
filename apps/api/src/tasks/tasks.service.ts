@@ -289,18 +289,18 @@ export class TasksService {
     const updatedTask = await this.prisma.task.update({
       where: { id: taskId },
       data: {
-        title: dto.title,
-        description: dto.description,
-        status: dto.status,
-        priority: dto.priority,
+        title: dto.title !== undefined ? dto.title : undefined,
+        description: dto.description !== undefined ? dto.description : undefined,
+        status: dto.status !== undefined ? dto.status : undefined,
+        priority: dto.priority !== undefined ? dto.priority : undefined,
         startDate: finalStartDate,
-        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
-        estimatedHours: dto.estimatedHours,
-        workedHours: dto.workedHours,
-        responsibles: dto.responsibleIds ? {
+        dueDate: dto.dueDate !== undefined ? (dto.dueDate ? new Date(dto.dueDate) : null) : undefined,
+        estimatedHours: dto.estimatedHours !== undefined ? dto.estimatedHours : undefined,
+        workedHours: dto.workedHours !== undefined ? dto.workedHours : undefined,
+        responsibles: dto.responsibleIds !== undefined ? {
           set: dto.responsibleIds.map(id => ({ id }))
         } : undefined,
-        kanbanOrder: dto.kanbanOrder,
+        kanbanOrder: dto.kanbanOrder !== undefined ? dto.kanbanOrder : undefined,
       },
     });
 
