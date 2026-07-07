@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ActivityLogService } from '../common/activity-log.service';
 import { TaskStatus } from '../common/types';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     private prisma: PrismaService,
     private activityLog: ActivityLogService,
+    private notifications: NotificationsService,
   ) {}
 
   // Generador de LexoRank simplificado para ordenamiento de Kanban
@@ -197,6 +199,9 @@ export class TasksService {
     }
     if (dto.status && dto.status !== existingTask.status) {
       changes.push(`cambió el estado de la tarea de "${existingTask.status}" a "${dto.status}"`);
+      if (dto.status === 'COMPLETED' || dto.status === 'IN_REVIEW') {
+        await this.sendTaskStatusNotification(companyId, userId, existingTask, dto.status);
+      }
     }
     if (dto.priority && dto.priority !== existingTask.priority) {
       changes.push(`cambió la prioridad de la tarea de "${existingTask.priority}" a "${dto.priority}"`);
@@ -276,6 +281,9 @@ export class TasksService {
         description: `${user?.firstName} ${user?.lastName} movió la tarea "${existingTask.title}" a "${status}"`,
         metadata: { status },
       });
+      if (status === 'COMPLETED' || status === 'IN_REVIEW') {
+        await this.sendTaskStatusNotification(companyId, userId, existingTask, status);
+      }
     }
 
     return updatedTask;
@@ -409,5 +417,36 @@ export class TasksService {
     });
 
     return comment;
+  }
+
+  private async sendTaskStatusNotification(companyId: string, userId: string, task: any, newStatus: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return;
+
+    // Buscar a los administradores y gestores de la empresa
+    const managers = await this.prisma.user.findMany({
+      where: {
+        companyId,
+        role: { in: ['MANAGER', 'COMPANY_ADMIN', 'SUPER_ADMIN'] },
+        id: { not: userId } // Evitar enviarse a sí mismo
+      },
+      select: { id: true }
+    });
+
+    const managerIds = managers.map(m => m.id);
+    if (managerIds.length === 0) return;
+
+    let statusText = newStatus;
+    if (newStatus === 'COMPLETED') statusText = 'COMPLETADA';
+    if (newStatus === 'IN_REVIEW') statusText = 'EN REVISIÓN';
+
+    await this.notifications.createNotification(
+      companyId,
+      `Tarea ${statusText}`,
+      `${user.firstName} ${user.lastName} marcó la tarea "${task.title}" como ${statusText}`,
+      'TASK_STATUS',
+      managerIds,
+      `/dashboard/projects/${task.projectId}`
+    );
   }
 }

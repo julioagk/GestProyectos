@@ -40,6 +40,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [setAuth, router]);
 
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const res = await fetch(`${apiUrl}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setNotifications(data);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching notifications:', e);
+    }
+  };
+
+  const markAsRead = async (recipientId: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const res = await fetch(`${apiUrl}/notifications/${recipientId}/read`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === recipientId ? { ...n, isRead: true } : n))
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 15000); // Polling every 15 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   if (!isClient || !user) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
@@ -217,8 +268,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* No notifications */}
+          <div className="flex items-center gap-3 relative">
+            <button
+              onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+              className="text-slate-400 hover:text-emerald-400 p-2 rounded-xl hover:bg-slate-900/65 relative transition-all active:scale-95"
+              title="Notificaciones"
+            >
+              <Bell size={20} />
+              {notifications.some(n => !n.isRead) && (
+                <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-950 animate-pulse" />
+              )}
+            </button>
+
+            {showNotificationsDropdown && (
+              <div className="absolute right-0 top-12 w-80 bg-slate-950 border border-slate-900 rounded-2xl shadow-2xl z-50 overflow-hidden py-1">
+                <div className="px-4 py-2.5 border-b border-slate-900 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200">Notificaciones</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">
+                    {notifications.filter(n => !n.isRead).length} nuevas
+                  </span>
+                </div>
+                <div className="max-h-72 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-slate-500 text-[11px] italic">
+                      No tienes notificaciones
+                    </div>
+                  ) : (
+                    notifications.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (!item.isRead) markAsRead(item.id);
+                          if (item.notification.link) {
+                            router.push(item.notification.link);
+                          }
+                          setShowNotificationsDropdown(false);
+                        }}
+                        className={`px-4 py-3 hover:bg-slate-900/60 border-b border-slate-900/40 cursor-pointer flex flex-col gap-0.5 transition-colors ${
+                          !item.isRead ? 'bg-emerald-500/[0.02]' : 'opacity-70'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-1">
+                          <span className={`text-xs font-bold ${!item.isRead ? 'text-emerald-400' : 'text-slate-300'}`}>
+                            {item.notification.title}
+                          </span>
+                          {!item.isRead && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0 mt-1.5" />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-normal font-medium">
+                          {item.notification.message}
+                        </p>
+                        <span className="text-[9px] text-slate-500 mt-1">
+                          {new Date(item.notification.createdAt).toLocaleDateString()} {new Date(item.notification.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
