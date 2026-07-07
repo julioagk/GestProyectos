@@ -21,7 +21,7 @@ export class ProjectsController {
 
   @Get('dashboard/stats')
   getDashboardStats(@Req() req: any) {
-    return this.projectsService.getDashboardStats(req.user.companyId);
+    return this.projectsService.getDashboardStats(req.user.companyId, req.user.sub, req.user.role);
   }
 
   @Get(':id')

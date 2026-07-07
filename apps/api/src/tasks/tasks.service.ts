@@ -1,16 +1,20 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ActivityLogService } from '../common/activity-log.service';
 import { TaskStatus } from '../common/types';
 import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../common/email.service';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     private prisma: PrismaService,
     private activityLog: ActivityLogService,
     private notifications: NotificationsService,
+    private emailService: EmailService,
   ) {}
 
   // Generador de LexoRank simplificado para ordenamiento de Kanban
@@ -76,6 +80,54 @@ export class TasksService {
     }
   }
 
+  private async notifyTaskAssignment(taskTitle: string, description: string, projectId: string, responsibleIds: string[]) {
+    try {
+      if (!responsibleIds || responsibleIds.length === 0) return;
+
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: responsibleIds } },
+        select: { email: true, firstName: true, lastName: true },
+      });
+
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+        select: { name: true },
+      });
+
+      const projectName = project?.name || 'Proyecto';
+      const webUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const projectUrl = `${webUrl}/dashboard/projects/${projectId}`;
+
+      for (const u of users) {
+        if (!u.email) continue;
+
+        const mailTitle = `Nueva tarea asignada: ${taskTitle}`;
+        const mailBody = `
+          <p>Hola <strong>${u.firstName} ${u.lastName}</strong>,</p>
+          <p>Se te ha asignado una nueva tarea en el proyecto <strong>${projectName}</strong>.</p>
+          <div style="background-color: #f1f5f9; padding: 16px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold; color: #0f172a;">${taskTitle}</p>
+            ${description ? `<p style="margin: 6px 0 0 0; color: #475569; font-size: 13px;">${description}</p>` : ''}
+          </div>
+          <p>Por favor, ingresa a la plataforma para revisar los detalles y comenzar a trabajar en ella.</p>
+        `;
+
+        const html = this.emailService.getEmailTemplate(
+          'Nueva Tarea Asignada',
+          mailBody,
+          projectUrl,
+          'Ver Tarea en el Tablero'
+        );
+
+        this.emailService.sendEmail(u.email, mailTitle, html).catch((err) => {
+          this.logger.error(`Error al enviar correo de asignación de tarea a ${u.email}:`, err);
+        });
+      }
+    } catch (err) {
+      this.logger.error('Error al procesar la notificación de asignación de tarea:', err);
+    }
+  }
+
   // --------------------------------------------------
   // TAREAS (TASKS)
   // --------------------------------------------------
@@ -126,6 +178,10 @@ export class TasksService {
       action: 'CREATE_TASK',
       description: `${user?.firstName} ${user?.lastName} creó la tarea "${task.title}"`,
     });
+
+    if (dto.responsibleIds && dto.responsibleIds.length > 0) {
+      this.notifyTaskAssignment(task.title, dto.description || '', projectId, dto.responsibleIds);
+    }
 
     await this.syncProjectStatus(projectId);
     return task;
@@ -278,6 +334,14 @@ export class TasksService {
         description: `${user?.firstName} ${user?.lastName} ${changes.join(', ')}`,
         metadata: { before: existingTask, after: updatedTask },
       });
+    }
+
+    if (dto.responsibleIds) {
+      const oldResponsibleIds = existingTask.responsibles?.map((r: any) => r.id) || [];
+      const newIds = dto.responsibleIds.filter(id => !oldResponsibleIds.includes(id));
+      if (newIds.length > 0) {
+        this.notifyTaskAssignment(updatedTask.title, updatedTask.description || '', existingTask.projectId, newIds);
+      }
     }
 
     await this.syncProjectStatus(existingTask.projectId);

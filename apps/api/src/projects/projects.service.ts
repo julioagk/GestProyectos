@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ActivityLogService } from '../common/activity-log.service';
+import { EmailService } from '../common/email.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     private activityLog: ActivityLogService,
+    private emailService: EmailService,
   ) {}
 
   async createProject(companyId: string, userId: string, dto: CreateProjectDto) {
@@ -46,6 +48,10 @@ export class ProjectsService {
       action: 'CREATE_PROJECT',
       description: `${user?.firstName} ${user?.lastName} creó el proyecto "${project.name}"`,
     });
+
+    if (project.responsibleId) {
+      this.notifyProjectAssignment(project.id, project.responsibleId);
+    }
 
     return project;
   }
@@ -229,6 +235,10 @@ export class ProjectsService {
       });
     }
 
+    if (updatedProject.responsibleId && updatedProject.responsibleId !== (existingProject as any).responsibleId) {
+      this.notifyProjectAssignment(updatedProject.id, updatedProject.responsibleId);
+    }
+
     return updatedProject;
   }
 
@@ -251,41 +261,79 @@ export class ProjectsService {
     return { success: true };
   }
 
-  async getDashboardStats(companyId: string) {
-    const totalProjects = await this.prisma.project.count({ where: { companyId } });
+  async getDashboardStats(companyId: string, userId?: string, userRole?: string) {
+    const isEmployee = userRole === 'EMPLOYEE';
+    
+    let projectWhere: any = { companyId };
+    let taskWhere: any = { companyId };
+    let activityWhere: any = { companyId };
+
+    if (isEmployee && userId) {
+      // 1. Obtener equipos del empleado
+      const memberTeams = await this.prisma.teamMember.findMany({
+        where: { userId },
+        select: { teamId: true },
+      });
+      const teamIds = memberTeams.map(t => t.teamId);
+      projectWhere = {
+        companyId,
+        teamId: { in: teamIds },
+      };
+
+      // 2. Obtener proyectos del empleado para filtrar actividades
+      const projects = await this.prisma.project.findMany({
+        where: { companyId, teamId: { in: teamIds } },
+        select: { id: true },
+      });
+      const projectIds = projects.map(p => p.id);
+      activityWhere = {
+        companyId,
+        projectId: { in: projectIds },
+      };
+
+      // 3. Filtrar tareas donde el empleado es uno de los responsables
+      taskWhere = {
+        companyId,
+        responsibles: {
+          some: { id: userId },
+        },
+      };
+    }
+
+    const totalProjects = await this.prisma.project.count({ where: projectWhere });
     const activeProjects = await this.prisma.project.count({
-      where: { companyId, status: { in: ['PENDING', 'IN_PROGRESS', 'IN_REVIEW'] } },
+      where: { ...projectWhere, status: { in: ['PENDING', 'IN_PROGRESS', 'IN_REVIEW'] } },
     });
     const completedProjects = await this.prisma.project.count({
-      where: { companyId, status: 'COMPLETED' },
+      where: { ...projectWhere, status: 'COMPLETED' },
     });
 
     const pendingTasks = await this.prisma.task.count({
-      where: { companyId, status: { not: 'COMPLETED' } },
+      where: { ...taskWhere, status: { not: 'COMPLETED' } },
     });
 
     const overdueTasks = await this.prisma.task.count({
       where: {
-        companyId,
+        ...taskWhere,
         status: { not: 'COMPLETED' },
         dueDate: { lt: new Date() },
       },
     });
 
     const hoursSum = await this.prisma.task.aggregate({
-      where: { companyId },
+      where: taskWhere,
       _sum: { workedHours: true },
     });
     const totalHours = hoursSum._sum.workedHours || 0;
 
-    const totalTasksCount = await this.prisma.task.count({ where: { companyId } });
+    const totalTasksCount = await this.prisma.task.count({ where: taskWhere });
     const completedTasksCount = await this.prisma.task.count({
-      where: { companyId, status: 'COMPLETED' },
+      where: { ...taskWhere, status: 'COMPLETED' },
     });
     const productivity = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
     const activities = await this.prisma.activityLog.findMany({
-      where: { companyId },
+      where: activityWhere,
       take: 10,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -309,5 +357,45 @@ export class ProjectsService {
 
   async getProjectActivity(companyId: string, projectId: string) {
     return this.activityLog.getLogs(companyId, projectId);
+  }
+
+  private async notifyProjectAssignment(projectId: string, responsibleId: string) {
+    try {
+      if (!responsibleId) return;
+
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+        select: { name: true, description: true },
+      });
+
+      const responsible = await this.prisma.user.findUnique({
+        where: { id: responsibleId },
+        select: { email: true, firstName: true, lastName: true },
+      });
+
+      if (!responsible || !responsible.email || !project) return;
+
+      const mailTitle = `Asignación de proyecto: ${project.name}`;
+      const webUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const projectUrl = `${webUrl}/dashboard/projects/${projectId}`;
+
+      const mailBody = `
+        <p>Hola <strong>${responsible.firstName} ${responsible.lastName}</strong>,</p>
+        <p>Has sido asignado como el **Responsable / Gestor** del proyecto <strong>${project.name}</strong>.</p>
+        ${project.description ? `<p style="color: #475569; font-size: 13px;"><em>Descripción: ${project.description}</em></p>` : ''}
+        <p>Puedes acceder al tablero del proyecto para comenzar a crear tareas y coordinar a tu equipo.</p>
+      `;
+
+      const html = this.emailService.getEmailTemplate(
+        'Nuevo Proyecto Asignado',
+        mailBody,
+        projectUrl,
+        'Ir al Tablero del Proyecto'
+      );
+
+      this.emailService.sendEmail(responsible.email, mailTitle, html).catch(() => {});
+    } catch (err) {
+      // Silencioso
+    }
   }
 }
