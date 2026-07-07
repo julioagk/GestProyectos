@@ -1162,7 +1162,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     draggable
                     onDragStart={(e) => handleDragStart(e, task.id)}
                     onClick={() => handleTaskClick(task)}
-                    className="p-4 bg-slate-900/40 border border-slate-900 rounded-xl hover:border-slate-800 transition-all hover:bg-slate-900/60 cursor-pointer group shadow-sm flex flex-col justify-between space-y-3 active:scale-[0.98] transform"
+                    className="p-4 bg-slate-950 border border-slate-700 rounded-xl hover:border-emerald-500/50 transition-all hover:shadow-md cursor-pointer group shadow-sm flex flex-col justify-between space-y-3 active:scale-[0.98] transform"
                   >
                     <div>
                       <div className="flex justify-between items-start gap-2">
@@ -1848,140 +1848,66 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 <button type="submit" className="px-3 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs">
                   Añadir
                 </button>
-              </form>
-            </div>
-
-            {/* Comments + Activity Tabs */}
-            <div className="border-t border-slate-800/80 pt-4 flex-1 flex flex-col overflow-hidden">
-              {/* Tab headers */}
-              <div className="flex items-center gap-1 mb-3">
-                <button
-                  onClick={() => setActivityTab('COMMENTS')}
-                  className={`px-3 py-1.5 text-[10px] font-semibold rounded-lg transition-all ${activityTab === 'COMMENTS' ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  <MessageSquare size={11} className="inline mr-1 -mt-0.5" />
-                  Comentarios
-                </button>
-                <button
-                  onClick={async () => {
-                    setActivityTab('ACTIVITY');
-                    try {
-                      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-                      const res = await fetch(`${apiUrl}/projects/${projectId}/activity`, {
-                        headers: { Authorization: `Bearer ${accessToken}` },
-                      });
-                      if (res.ok) {
-                        const allActivities = await res.json();
-                        const taskActs = Array.isArray(allActivities) 
-                          ? allActivities.filter((a: any) => a.taskId === selectedTask.id)
-                          : [];
-                        setTaskActivities(taskActs);
-                      }
-                    } catch {}
-                  }}
-                  className={`px-3 py-1.5 text-[10px] font-semibold rounded-lg transition-all ${activityTab === 'ACTIVITY' ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  <History size={11} className="inline mr-1 -mt-0.5" />
-                  Historial
-                </button>
+            {/* Chat de comentarios visible por defecto (No oculto) */}
+            <div className="border-t border-slate-800/80 pt-4 flex-1 flex flex-col overflow-hidden space-y-3">
+              <div className="flex items-center gap-1.5 px-1">
+                <MessageSquare size={13} className="text-emerald-500" />
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Chat de la Tarea</span>
               </div>
 
-              {/* Comments Tab */}
-              {activityTab === 'COMMENTS' && (
-                <>
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[220px]">
-                    {comments.length === 0 ? (
-                      <p className="text-[10px] text-slate-500 italic py-4">No hay comentarios en esta tarea aún.</p>
-                    ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-900 text-xs space-y-1">
-                          <div className="flex justify-between items-center text-[10px] text-slate-500">
-                            <span className="font-semibold text-slate-800">
-                              {comment.user.firstName} {comment.user.lastName}
-                            </span>
-                            <span>
-                              {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          {renderCommentContent(comment.content)}
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    {attachedFile && (
-                      <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-700 font-semibold">
-                        <span className="truncate flex items-center gap-1.5">
-                          <Paperclip size={12} /> {attachedFile.name}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[280px]">
+                {comments.length === 0 ? (
+                  <p className="text-[10px] text-slate-500 italic py-4">No hay mensajes en esta tarea. ¡Escribe algo para iniciar la conversación!</p>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs space-y-1 shadow-xs">
+                      <div className="flex justify-between items-center text-[10px] text-slate-500">
+                        <span className="font-bold text-slate-800">
+                          {comment.user.firstName} {comment.user.lastName}
                         </span>
-                        <button onClick={() => setAttachedFile(null)} className="text-rose-500 hover:text-rose-600">✕</button>
+                        <span className="font-medium text-slate-400">
+                          {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
-                    )}
+                      {renderCommentContent(comment.content)}
+                    </div>
+                  ))
+                )}
+              </div>
 
-                    <form onSubmit={handleAddComment} className="flex gap-2 items-center">
-                      <label className="cursor-pointer p-2 rounded-xl border border-slate-200 hover:bg-slate-100/70 text-slate-500 transition-colors flex items-center justify-center shrink-0">
-                        <Paperclip size={16} />
-                        <input
-                          type="file"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setAttachedFile(e.target.files[0]);
-                            }
-                          }}
-                        />
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Escribe un comentario..."
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-700 placeholder-slate-400 focus:outline-none"
-                      />
-                      <button type="submit" className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-md shrink-0">
-                        Enviar
-                      </button>
-                    </form>
+              <div className="space-y-2">
+                {attachedFile && (
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-700 font-semibold">
+                    <span className="truncate flex items-center gap-1.5">
+                      <Paperclip size={12} /> {attachedFile.name}
+                    </span>
+                    <button onClick={() => setAttachedFile(null)} className="text-rose-500 hover:text-rose-600">✕</button>
                   </div>
-                </>
-              )}
+                )}
 
-              {/* Activity History Tab */}
-              {activityTab === 'ACTIVITY' && (
-                <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[300px]">
-                  {taskActivities.length === 0 ? (
-                    <p className="text-[10px] text-slate-500 italic py-4">No hay actividad registrada para esta tarea aún.</p>
-                  ) : (
-                    taskActivities.map((act, idx) => {
-                      const timeAgo = (() => {
-                        const diff = Date.now() - new Date(act.createdAt).getTime();
-                        const mins = Math.floor(diff / 60000);
-                        if (mins < 1) return 'Justo ahora';
-                        if (mins < 60) return `hace ${mins} min`;
-                        const hours = Math.floor(mins / 60);
-                        if (hours < 24) return `hace ${hours}h`;
-                        const days = Math.floor(hours / 24);
-                        return `hace ${days}d`;
-                      })();
-                      return (
-                        <div key={idx} className="flex items-start gap-3 text-xs">
-                          <div className="mt-1 h-2 w-2 rounded-full bg-emerald-500/60 shrink-0" />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-300">
-                                {act.user ? `${act.user.firstName} ${act.user.lastName}` : 'Sistema'}
-                              </span>
-                              <span className="text-[9px] text-slate-600">{timeAgo}</span>
-                            </div>
-                            <p className="text-slate-400 text-[11px] leading-relaxed mt-0.5">{act.description}</p>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
+                <form onSubmit={handleAddComment} className="flex gap-2 items-center">
+                  <label className="cursor-pointer p-2 rounded-xl border border-slate-700 hover:bg-slate-900 text-slate-500 transition-colors flex items-center justify-center shrink-0 shadow-xs">
+                    <Paperclip size={16} />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setAttachedFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Escribe un mensaje o sube una imagen..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 shadow-xs"
+                  />
+                  <button type="submit" className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shrink-0 active:scale-[0.98] transition-all">
+                    Enviar
+              </div>
             </div>
           </div>
         </div>

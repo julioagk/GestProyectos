@@ -1,16 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc; /* Light gray-blue background for premium feel */
-  --foreground: #0f172a; /* High contrast dark slate text */
-  font-size: 100%;       /* Set font-size to standard 100% to avoid sidebar overflow */
+  --background: #f8fafc; /* Premium light blue-gray background */
+  --foreground: #0f172a; /* Slate 900 for dark legible text */
+  font-size: 100%;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Invert the slate color system so dark classes become bright, readable light mode styles */
+  --color-slate-50: #020617;   /* Deepest dark for text contrast */
+  --color-slate-100: #0f172a;  /* Dark slate for primary text */
+  --color-slate-200: #1e293b;  /* Medium slate for secondary text */
+  --color-slate-300: #334155;  /* Slate for body text */
+  --color-slate-450: #475569;  /* Label text */
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;  /* Icon slate */
+  --color-slate-600: #94a3b8;  /* Muted elements */
+  --color-slate-700: #cbd5e1;  /* Borders */
+  --color-slate-800: #e2e8f0;  /* Strong borders / dividing lines */
+  --color-slate-900: #f1f5f9;  /* Panel backgrounds (cards, input focus) */
+  --color-slate-950: #ffffff;  /* Primary background (sidebar, main layouts, cards) */
 }
 
 body {
@@ -21,32 +33,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global utility classes for high accessibility and visible icon borders */
+/* Accessible typography and icons */
 svg {
   stroke-width: 2.2px !important;
 }
 
-/* Force dark colors in text labels that were hardcoded slate-400 */
-.text-slate-400 {
-  color: #475569 !important; /* Enforce high contrast slate-600 */
-}
-
-.text-slate-500 {
-  color: #334155 !important; /* Enforce high contrast slate-700 */
-}
-
-.bg-slate-900 {
-  background-color: #f1f5f9 !important; /* Light slate background */
-}
-
-.bg-slate-950 {
-  background-color: #ffffff !important; /* White background */
-}
-
-.border-slate-800 {
-  border-color: #cbd5e1 !important; /* Visible light slate border */
-}
-
-.border-slate-900 {
-  border-color: #e2e8f0 !important; /* Soft border */
+/* Ensure global links and buttons have correct state colors */
+a, button {
+  transition: all 0.2s ease-in-out;
 }
