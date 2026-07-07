@@ -124,7 +124,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar Desktop */}
       <aside
-        className={`hidden md:flex flex-col border-r border-slate-200 bg-white transition-all duration-300 z-20 ${
+        className={`hidden md:flex flex-col h-screen border-r border-slate-200 bg-white transition-all duration-300 z-20 ${
           isSidebarCollapsed ? 'w-20' : 'w-64'
         }`}
       >

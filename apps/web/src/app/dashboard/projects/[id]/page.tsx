@@ -1070,17 +1070,17 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* Tab Switcher: Kanban | Archivos */}
-      <div className="flex items-center gap-1 border-b border-slate-900 mb-2">
+      <div className="flex items-center gap-1 border-b border-slate-200 mb-2">
         <button
           onClick={() => setActiveTab('KANBAN')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all ${activeTab === 'KANBAN' ? 'text-emerald-400 border-b-2 border-emerald-400 bg-slate-900/30' : 'text-slate-500 hover:text-slate-300'}`}
+          className={`px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all ${activeTab === 'KANBAN' ? 'text-emerald-600 border-b-2 border-emerald-500 bg-emerald-500/10' : 'text-slate-500 hover:text-slate-800'}`}
         >
           <CheckSquare size={13} className="inline mr-1.5 -mt-0.5" />
           Tablero
         </button>
         <button
           onClick={() => setActiveTab('FILES')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-t-lg transition-all ${activeTab === 'FILES' ? 'text-emerald-400 border-b-2 border-emerald-400 bg-slate-900/30' : 'text-slate-500 hover:text-slate-300'}`}
+          className={`px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all ${activeTab === 'FILES' ? 'text-emerald-600 border-b-2 border-emerald-500 bg-emerald-500/10' : 'text-slate-500 hover:text-slate-800'}`}
         >
           <FileText size={13} className="inline mr-1.5 -mt-0.5" />
           Archivos del Proyecto
@@ -1205,9 +1205,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                             ?
                           </div>
                         )}
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-semibold ${
-                          task.priority === 'URGENT' ? 'bg-rose-500/10 text-rose-400' :
-                          task.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                          task.priority === 'URGENT' ? 'bg-rose-100 text-rose-700' :
+                          task.priority === 'HIGH' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
                         }`}>
                           {task.priority === 'URGENT' ? 'Urgente' :
                            task.priority === 'HIGH' ? 'Alta' : 'Media'}
