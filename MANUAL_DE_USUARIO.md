@@ -25,114 +25,92 @@ El sistema cuenta con un control de accesos basado en roles para asegurar que ca
 
 ---
 
-## 🖥️ 2. Explicación Detallada de las Secciones de la App
+## 🖥️ 2. Explicación de las Secciones de la App
 
 ### 🏠 A. Dashboard (Panel de Inicio)
-El Dashboard es la pantalla de bienvenida y el centro de control de tu empresa. Ofrece un resumen en tiempo real sobre la productividad y el avance global.
+El Dashboard es la pantalla de bienvenida y el centro de control de tu empresa. 
 
 ![Dashboard Principal](file:///c:/Users/julio/Downloads/Gestion%20de%20Proyectos/apps/web/public/manual/dashboard.png)
 
-* **Qué hace:** Muestra tarjetas de métricas clave (Proyectos Activos, Tareas Totales, Integrantes del Equipo) y un gráfico visual de rendimiento.
-* **Quién lo usa:** Todos los usuarios. Los gestores ven el resumen general de toda la empresa, mientras que los colaboradores visualizan las métricas correspondientes a sus proyectos y asignaciones activas.
+* **Qué hace:** Ofrece un resumen en tiempo real sobre los proyectos activos, tareas pendientes, tareas completadas, colaboradores del equipo y el rendimiento global del mes.
+* **Quién lo usa:** Todos los usuarios lo visualizan al entrar al sistema.
 
 ---
 
 ### 📂 B. Proyectos (Predeterminado en Vista de Etapas)
-Es la sección principal de administración. Al ingresar, verás la lista de proyectos en la **Vista de Etapas** predeterminada para una mejor organización de las fases.
+Es el lugar donde se administran y estructuran los proyectos de la empresa.
 
 ![Tablero Kanban de Proyectos](file:///c:/Users/julio/Downloads/Gestion%20de%20Proyectos/apps/web/public/manual/tablero.png)
 
 * **Qué hace:** 
-  1. Permite agrupar los proyectos en etapas editables (como "Pendientes", "En Proceso", "Completados").
-  2. Ofrece la opción de crear un **"Nuevo Proyecto"** (exclusivo para Gestores), asignarle un equipo de trabajo y prioridades.
-  3. Contiene la barra de búsqueda rápida y filtros por empresa/equipo.
-* **Botones e Interactividad:**
-  * **Botón "+ Nuevo Proyecto"**: Abre el modal de creación.
-  * **Botón "Cuadrícula / Etapas"**: Permite cambiar la forma en la que se visualizan los proyectos.
-  * **Doble clic en Etapa**: Permite a los gestores renombrar las etapas del proyecto en vivo.
+  1. Permite crear proyectos asignándoles un equipo y prioridades.
+  2. Organiza los proyectos en columnas según su fase actual (Pendiente, En Progreso, Completado).
+  3. Contiene la barra de búsqueda y filtros rápidos.
 
 ---
 
-### 📋 C. Detalle del Proyecto y Tablero Kanban de Tareas
-Al hacer clic sobre cualquier proyecto, entrarás a su tablero Kanban interactivo.
-
-* **Qué hace:** Administra las tareas individuales mediante un flujo de arrastrar y soltar (drag and drop) de izquierda a derecha. Las columnas son: **Pendientes**, **En Proceso**, **En Revisión** y **Completadas**.
-* **Botones e Interactividad:**
-  * **Botón "+ Nueva Tarea"**: (Solo visible para Gestores) Permite crear tareas completas con descripción, prioridad y responsable.
-  * **Agregar tarea rápida**: Input al final de cada columna para crear tareas ágiles escribiendo el título y presionando Enter.
-  * **Filtro de Responsables**: Al crear una tarea, la lista de usuarios se filtra automáticamente mostrando únicamente a los miembros del equipo asignado al proyecto.
+### 📋 C. Tablero de Tareas (Kanban)
+Al hacer clic sobre cualquier proyecto, entrarás a su tablero Kanban interactivo de tareas.
+* **Qué hace:** Permite crear y mover las tareas a través de las columnas: **Pendientes**, **En Proceso**, **En Revisión** y **Completadas**.
+* **Quién lo usa:** Los gestores crean y asignan tareas; los colaboradores las actualizan a medida que avanzan.
 
 ---
 
-### 🗂️ D. Pestaña "Archivos del Proyecto" (Consolidación de Evidencias)
-Dentro del detalle del proyecto, al lado del botón Tablero, se encuentra la sección de archivos.
-
-* **Qué hace:** Centraliza la administración de archivos en dos secciones:
-  1. **Archivos Generales del Proyecto**: Documentos subidos por los gestores para consulta de todos.
-  2. **Evidencias y Entregas de Tareas**: Muestra en tiempo real **todas las pruebas cargadas por los empleados** en los checklists de sus respectivas tareas. Especifica a qué tarea pertenece, qué subtarea valida, quién lo subió y la fecha de entrega.
-* **Botones e Interactividad:**
-  * **Botón "Previsualizar" (Icono de Ojo)**: Abre fotos, imágenes y PDFs directamente en el navegador sin tener que descargarlos.
-  * **Botón "Descargar" (Icono de Flecha hacia abajo)**: Guarda el archivo en tu equipo.
+### 🗂️ D. Archivos del Proyecto
+* **Qué hace:** Centraliza todos los archivos cargados. Muestra por separado los archivos generales del proyecto y las **evidencias de tareas** subidas por los colaboradores (indicando la tarea, subtarea y quién la subió).
 
 ---
 
 ### 💬 E. Chat de la Tarea en Vivo (Drawer de Detalles)
-Al hacer clic en cualquier tarjeta de tarea, se despliega el panel lateral (Drawer) con toda su información detallada y el **Chat de la Tarea** permanente en la parte inferior.
+Al abrir cualquier tarea, se despliega el panel con sus detalles y el chat en vivo permanente en la parte inferior.
 
 ![Chat y Drawer de Detalles de la Tarea](file:///c:/Users/julio/Downloads/Gestion%20de%20Proyectos/apps/web/public/manual/chat.png)
 
-* **Qué hace:** Permite que los responsables y gestores conversen en tiempo real sobre la tarea específica, envíen mensajes de texto y **suban imágenes y archivos adjuntos** directamente al chat de forma visible e inmediata.
-* **Botones e Interactividad:**
-  * **Botón de Clip (Adjuntar)**: Permite subir imágenes o documentos al chat. Las imágenes se muestran interactivas dentro de la conversación y los archivos quedan como botones de descarga rápida.
-  * **Checklist con evidencias**: Cada tarea puede tener subtareas de control. Los colaboradores marcan sus avances y adjuntan pruebas técnicas en cada punto específico.
+* **Qué hace:** Permite conversar sobre la tarea en tiempo real y **adjuntar archivos e imágenes** directamente en los mensajes de chat para máxima comodidad de comunicación.
 
 ---
 
 ### 📅 F. Calendario
-Muestra la planificación de las tareas distribuidas a lo largo del mes en un formato visual.
-* **Qué hace:** Ayuda a los gestores y empleados a visualizar las fechas límite de entrega para planificar mejor sus jornadas. Las tareas aparecen coloreadas según su estado de ejecución.
+* **Qué hace:** Muestra de forma visual las tareas agendadas distribuidas en el calendario mensual para controlar los plazos de entrega.
 
 ---
 
-### ⚙️ G. Configuración
-* **Qué hace:** 
-  1. **Empresa:** Cambiar el nombre comercial de la organización y actualizar el logotipo del sistema.
-  2. **Seguridad:** Permite a todos los usuarios cambiar su contraseña de acceso de forma segura (validando la contraseña actual).
+## 🚀 3. Flujo Lógico de Uso: Paso a Paso (Puesta en Marcha)
 
----
-
-## 🔄 3. Flujo Completo de Aprobación de Tareas (Paso a Paso)
+Para utilizar la aplicación de manera óptima por primera vez, sigue este orden de pasos:
 
 ```mermaid
-sequenceDiagram
-    participant E as Empleado
-    participant S as Sistema (Notificación)
-    participant G as Gestor
-    E->>E: Abre Tarea y completa el Checklist
-    E->>E: Sube imágenes/evidencias
-    E->>E: Clic en "🚀 Entregar Tarea (Enviar a Revisión)"
-    Note over E: La tarea pasa a EN REVISIÓN
-    S-->>G: Alerta en la Campana (Tiempo Real)
-    G->>G: Abre "Archivos del Proyecto" para validar evidencias
-    G->>G: Abre la tarea y revisa el chat
-    alt Aceptar Trabajo
-        G->>G: Clic en "✓ Aceptar Entrega"
-        Note over G: La tarea pasa a COMPLETADA
-    else Rechazar y Solicitar Ajuste
-        G->>G: Clic en "✕ Rechazar y Corregir"
-        Note over G: Tarea regresa a EN PROGRESO
-    end
+graph LR
+    P1[Paso 1: Crear Equipo] --> P2[Paso 2: Crear Proyecto]
+    P2 --> P3[Paso 3: Crear Tareas]
+    P3 --> P4[Paso 4: Entregar Evidencias]
+    P4 --> P5[Paso 5: Revisión del Gestor]
 ```
 
-### 1. Preparación del Empleado
-Cuando el colaborador completa las subtareas de la actividad, sube las imágenes o PDFs que avalan su trabajo y da clic en **"Entregar Tarea (Enviar a Revisión)"**.
+### ➡️ Paso 1: Crear Equipos y Registrar Colaboradores
+1. Ve a la sección **Empresas** (o Equipos).
+2. Crea los equipos correspondientes a tu organización (ej: "Desarrollo de Software", "Marketing").
+3. Agrega a los empleados a su equipo de trabajo respectivo.
 
-### 2. Notificación en la Campana
-El sistema genera automáticamente una alerta para todos los gestores de la empresa:
-> *"Tarea EN REVISIÓN: [Nombre del Empleado] marcó la tarea [Título] como EN REVISIÓN"*.
-Al hacer clic en la alerta, el gestor es llevado directamente al tablero del proyecto.
+### ➡️ Paso 2: Crear el Proyecto
+1. Dirígete a la sección **Proyectos**.
+2. Presiona **"+ Nuevo Proyecto"** (sólo gestores).
+3. Escribe el nombre, descripción, fechas y **selecciona el Equipo asignado** en el Paso 1.
 
-### 3. Validación y Aprobación
-El Gestor puede ir a la pestaña **Archivos del Proyecto** para ver todas las evidencias recopiladas sin tener que buscar tarea por tarea. Al abrir los detalles de la tarea, tendrá dos opciones de decisión:
-* **Aceptar Entrega**: Pasa la tarea a **Completada**.
-* **Rechazar y Corregir**: Regresa la tarea a **En Progreso** para que el empleado haga las correcciones necesarias y vuelva a entregarla.
+### ➡️ Paso 3: Crear y Asignar Tareas
+1. Entra al proyecto creado.
+2. Presiona **"+ Nueva Tarea"** para abrir el creador o usa la barra rápida de la columna.
+3. Al seleccionar el **Responsable**, el sistema inteligentemente filtrará y mostrará **únicamente a los empleados que pertenecen al equipo del proyecto** seleccionado en el Paso 2 (evitando asignaciones incorrectas).
+
+### ➡️ Paso 4: Trabajo y Entrega (Empleado)
+1. El empleado abre su tarea en el tablero y la arrastra a **"En Proceso"**.
+2. Escribe sus dudas y **sube imágenes y archivos** en el **Chat en vivo** de la tarea.
+3. En el Checklist, sube las evidencias técnicas correspondientes.
+4. Presiona el botón **"🚀 Entregar Tarea (Enviar a Revisión)"** en el panel.
+
+### ➡️ Paso 5: Aprobación / Cierre (Gestor)
+1. El gestor recibe una notificación en la campana de que la tarea está lista.
+2. Abre la pestaña **Archivos del Proyecto** para ver todas las evidencias acumuladas sin necesidad de buscar en cada tarea.
+3. Abre los detalles de la tarea y selecciona:
+   * **✓ Aceptar Entrega**: La tarea pasa a **Completada**.
+   * **✕ Rechazar y Corregir**: La tarea regresa a **En Progreso** para que el empleado haga las correcciones oportunas.
