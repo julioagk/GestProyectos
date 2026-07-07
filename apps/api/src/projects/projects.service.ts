@@ -49,8 +49,8 @@ export class ProjectsService {
       description: `${user?.firstName} ${user?.lastName} creó el proyecto "${project.name}"`,
     });
 
-    if (project.responsibleId) {
-      this.notifyProjectAssignment(project.id, project.responsibleId);
+    if (project.teamId || project.responsibleId) {
+      this.notifyProjectAssignment(project.id, project.teamId || undefined, project.responsibleId || undefined);
     }
 
     return project;
@@ -235,8 +235,11 @@ export class ProjectsService {
       });
     }
 
-    if (updatedProject.responsibleId && updatedProject.responsibleId !== (existingProject as any).responsibleId) {
-      this.notifyProjectAssignment(updatedProject.id, updatedProject.responsibleId);
+    if (
+      (updatedProject.teamId && updatedProject.teamId !== (existingProject as any).teamId) ||
+      (updatedProject.responsibleId && updatedProject.responsibleId !== (existingProject as any).responsibleId)
+    ) {
+      this.notifyProjectAssignment(updatedProject.id, updatedProject.teamId || undefined, updatedProject.responsibleId || undefined);
     }
 
     return updatedProject;
@@ -359,41 +362,70 @@ export class ProjectsService {
     return this.activityLog.getLogs(companyId, projectId);
   }
 
-  private async notifyProjectAssignment(projectId: string, responsibleId: string) {
+  private async notifyProjectAssignment(projectId: string, teamId?: string, responsibleId?: string) {
     try {
-      if (!responsibleId) return;
-
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
         select: { name: true, description: true },
       });
+      if (!project) return;
 
-      const responsible = await this.prisma.user.findUnique({
-        where: { id: responsibleId },
-        select: { email: true, firstName: true, lastName: true },
-      });
-
-      if (!responsible || !responsible.email || !project) return;
-
-      const mailTitle = `Asignación de proyecto: ${project.name}`;
       const webUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const projectUrl = `${webUrl}/dashboard/projects/${projectId}`;
+      const mailTitle = `Nuevo proyecto asignado: ${project.name}`;
 
-      const mailBody = `
-        <p>Hola <strong>${responsible.firstName} ${responsible.lastName}</strong>,</p>
-        <p>Has sido asignado como el **Responsable / Gestor** del proyecto <strong>${project.name}</strong>.</p>
-        ${project.description ? `<p style="color: #475569; font-size: 13px;"><em>Descripción: ${project.description}</em></p>` : ''}
-        <p>Puedes acceder al tablero del proyecto para comenzar a crear tareas y coordinar a tu equipo.</p>
-      `;
+      const recipients = new Map<string, { email: string; name: string }>();
 
-      const html = this.emailService.getEmailTemplate(
-        'Nuevo Proyecto Asignado',
-        mailBody,
-        projectUrl,
-        'Ir al Tablero del Proyecto'
-      );
+      if (responsibleId) {
+        const respUser = await this.prisma.user.findUnique({
+          where: { id: responsibleId },
+          select: { email: true, firstName: true, lastName: true },
+        });
+        if (respUser && respUser.email) {
+          recipients.set(respUser.email, {
+            email: respUser.email,
+            name: `${respUser.firstName} ${respUser.lastName}`.trim(),
+          });
+        }
+      }
 
-      this.emailService.sendEmail(responsible.email, mailTitle, html).catch(() => {});
+      if (teamId) {
+        const teamMembers = await this.prisma.teamMember.findMany({
+          where: { teamId },
+          include: {
+            user: {
+              select: { email: true, firstName: true, lastName: true },
+            },
+          },
+        });
+
+        teamMembers.forEach((member) => {
+          if (member.user && member.user.email) {
+            recipients.set(member.user.email, {
+              email: member.user.email,
+              name: `${member.user.firstName} ${member.user.lastName}`.trim(),
+            });
+          }
+        });
+      }
+
+      for (const [email, user] of recipients.entries()) {
+        const mailBody = `
+          <p>Hola <strong>${user.name}</strong>,</p>
+          <p>Se ha asignado el proyecto <strong>${project.name}</strong> a tu equipo de trabajo.</p>
+          ${project.description ? `<p style="color: #475569; font-size: 13px;"><em>Descripción: ${project.description}</em></p>` : ''}
+          <p>Ya puedes ingresar a la plataforma para ver el tablero Kanban del proyecto y colaborar con tus compañeros.</p>
+        `;
+
+        const html = this.emailService.getEmailTemplate(
+          'Nuevo Proyecto Asignado',
+          mailBody,
+          projectUrl,
+          'Ver Proyecto'
+        );
+
+        this.emailService.sendEmail(email, mailTitle, html).catch(() => {});
+      }
     } catch (err) {
       // Silencioso
     }
