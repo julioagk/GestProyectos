@@ -1836,7 +1836,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 })}
               </div>
 
-              <form onSubmit={handleAddChecklist} className="flex gap-2">
+               <form onSubmit={handleAddChecklist} className="flex gap-2">
                 <input
                   type="text"
                   required
@@ -1848,6 +1848,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 <button type="submit" className="px-3 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs">
                   Añadir
                 </button>
+              </form>
+            </div>
+
             {/* Chat de comentarios visible por defecto (No oculto) */}
             <div className="border-t border-slate-800/80 pt-4 flex-1 flex flex-col overflow-hidden space-y-3">
               <div className="flex items-center gap-1.5 px-1">
@@ -1907,6 +1910,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   />
                   <button type="submit" className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shrink-0 active:scale-[0.98] transition-all">
                     Enviar
+                  </button>
+                </form>
               </div>
             </div>
           </div>
