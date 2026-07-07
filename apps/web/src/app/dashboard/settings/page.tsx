@@ -323,24 +323,7 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          {/* Section 3: Super Admin Console (Locked by default, open to SUPER_ADMIN) */}
-          <div className="bg-slate-900/10 border border-dashed border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <h2 className="text-base font-bold text-slate-400 flex items-center gap-2">
-              <Lock size={16} /> Consola del Super Administrador
-            </h2>
-            <p className="text-xs text-slate-500 leading-normal">
-              Esta sección está disponible exclusivamente para cuentas con rol de Super Administrador Global. Permite el monitoreo de espacio en disco utilizado por todas las empresas y control del estado de suscripciones.
-            </p>
-            {user?.role === 'SUPER_ADMIN' ? (
-              <button className="py-2 px-4 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-md">
-                Acceder a Consola Global
-              </button>
-            ) : (
-              <span className="inline-block text-[10px] font-semibold text-amber-500/80 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md">
-                Acceso restringido: Requiere rol SUPER_ADMIN
-              </span>
-            )}
-          </div>
+
         </div>
       </div>
     </div>
