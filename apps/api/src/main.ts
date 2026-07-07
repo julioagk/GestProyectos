@@ -1,9 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Incrementar límite de tamaño para payloads grandes (evidencias Base64 e imágenes)
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
+
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const allowedOrigins = [frontendUrl, 'http://localhost:3000', 'http://localhost:3001'];
 

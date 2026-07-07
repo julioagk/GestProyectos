@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber, IsDateString, IsArray } from 'class-validator';
 import { TaskStatus, Priority } from '../../common/types';
 
 export class CreateTaskDto {
@@ -34,6 +34,8 @@ export class CreateTaskDto {
   @IsOptional()
   workedHours?: number;
 
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
   responsibleIds?: string[];
 
