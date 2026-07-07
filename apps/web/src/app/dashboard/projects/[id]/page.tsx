@@ -139,6 +139,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   // Comments and Checklist inside drawer
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [isLoggingHours, setIsLoggingHours] = useState(false);
   const [logHoursVal, setLogHoursVal] = useState(0);
@@ -935,16 +936,74 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const renderCommentContent = (content: string) => {
+    const imgRegex = /!\[(.*?)\]\((.*?)\)/;
+    const linkRegex = /\[(.*?)\]\((.*?)\)/;
+
+    let match;
+    if (content.includes('![') && (match = imgRegex.exec(content))) {
+      const alt = match[1];
+      const url = match[2];
+      return (
+        <div className="space-y-1 mt-1">
+          <p className="text-[10px] text-slate-500 italic">Subió una imagen:</p>
+          <div className="relative max-w-xs overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+            <img src={url} alt={alt} className="object-contain max-h-48 w-full" />
+          </div>
+        </div>
+      );
+    }
+
+    if (content.includes('[') && (match = linkRegex.exec(content))) {
+      const filename = match[1];
+      const url = match[2];
+      return (
+        <div className="mt-1">
+          <a
+            href={url}
+            download={filename}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 text-xs font-semibold border border-emerald-500/20 transition-all"
+          >
+            <Paperclip size={12} />
+            <span>Descargar {filename}</span>
+          </a>
+        </div>
+      );
+    }
+
+    return <p className="text-slate-700 leading-normal font-medium">{content}</p>;
+  };
+
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !selectedTask) return;
-    
-    const content = newComment.trim();
-    setNewComment('');
+    if (!newComment.trim() && !attachedFile) return;
 
+    let content = newComment.trim();
+
+    if (attachedFile) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = reader.result as string;
+        const isImage = attachedFile.type.startsWith('image/');
+        const markdownContent = isImage 
+          ? `![${attachedFile.name}](${dataUrl})` 
+          : `[${attachedFile.name}](${dataUrl})`;
+        
+        const finalContent = content ? `${content}\n\n${markdownContent}` : markdownContent;
+        await submitCommentToServer(finalContent);
+        setAttachedFile(null);
+      };
+      reader.readAsDataURL(attachedFile);
+    } else {
+      await submitCommentToServer(content);
+    }
+  };
+
+  const submitCommentToServer = async (content: string) => {
+    setNewComment('');
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-      const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}/comments`, {
+      const res = await fetch(`${apiUrl}/tasks/${selectedTask?.id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -956,8 +1015,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         const commentData = await res.json();
         setComments([...comments, commentData]);
         
-        // Reload task to keep in sync
-        const reloadRes = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+        const reloadRes = await fetch(`${apiUrl}/tasks/${selectedTask?.id}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (reloadRes.ok) {
@@ -1838,32 +1896,54 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       comments.map((comment) => (
                         <div key={comment.id} className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-900 text-xs space-y-1">
                           <div className="flex justify-between items-center text-[10px] text-slate-500">
-                            <span className="font-semibold text-slate-300">
+                            <span className="font-semibold text-slate-800">
                               {comment.user.firstName} {comment.user.lastName}
                             </span>
                             <span>
                               {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <p className="text-slate-300 leading-normal">{comment.content}</p>
+                          {renderCommentContent(comment.content)}
                         </div>
                       ))
                     )}
                   </div>
 
-                  <form onSubmit={handleAddComment} className="flex gap-2 mt-4">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Escribe un comentario..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none"
-                    />
-                    <button type="submit" className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-md">
-                      Enviar
-                    </button>
-                  </form>
+                  <div className="mt-4 space-y-2">
+                    {attachedFile && (
+                      <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-700 font-semibold">
+                        <span className="truncate flex items-center gap-1.5">
+                          <Paperclip size={12} /> {attachedFile.name}
+                        </span>
+                        <button onClick={() => setAttachedFile(null)} className="text-rose-500 hover:text-rose-600">✕</button>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleAddComment} className="flex gap-2 items-center">
+                      <label className="cursor-pointer p-2 rounded-xl border border-slate-200 hover:bg-slate-100/70 text-slate-500 transition-colors flex items-center justify-center shrink-0">
+                        <Paperclip size={16} />
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setAttachedFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Escribe un comentario..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-700 placeholder-slate-400 focus:outline-none"
+                      />
+                      <button type="submit" className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-semibold shadow-md shrink-0">
+                        Enviar
+                      </button>
+                    </form>
+                  </div>
                 </>
               )}
 

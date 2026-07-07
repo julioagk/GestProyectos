@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  font-size: 110%; /* Increase base font size for better visibility */
+  --background: #f8fafc; /* Light gray-blue background for premium feel */
+  --foreground: #0f172a; /* High contrast dark slate text */
+  font-size: 100%;       /* Set font-size to standard 100% to avoid sidebar overflow */
 }
 
 @theme inline {
@@ -11,13 +11,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #030712; /* Deep dark slate-950 background */
-    --foreground: #f8fafc; /* Crisp slate-50 foreground text for maximum readability */
-  }
 }
 
 body {
@@ -28,15 +21,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Global utility classes to enforce larger Lucide icons and higher visibility colors */
+/* Global utility classes for high accessibility and visible icon borders */
 svg {
-  stroke-width: 2.2px !important; /* Thicker strokes for easy reading */
+  stroke-width: 2.2px !important;
 }
 
+/* Force dark colors in text labels that were hardcoded slate-400 */
 .text-slate-400 {
-  color: #94a3b8 !important; /* Brighter gray for high contrast */
+  color: #475569 !important; /* Enforce high contrast slate-600 */
 }
 
 .text-slate-500 {
-  color: #cbd5e1 !important; /* Much lighter gray for better visibility */
+  color: #334155 !important; /* Enforce high contrast slate-700 */
+}
+
+.bg-slate-900 {
+  background-color: #f1f5f9 !important; /* Light slate background */
+}
+
+.bg-slate-950 {
+  background-color: #ffffff !important; /* White background */
+}
+
+.border-slate-800 {
+  border-color: #cbd5e1 !important; /* Visible light slate border */
+}
+
+.border-slate-900 {
+  border-color: #e2e8f0 !important; /* Soft border */
 }
