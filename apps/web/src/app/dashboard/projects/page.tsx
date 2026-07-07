@@ -58,7 +58,7 @@ export default function ProjectsPage() {
   const { accessToken, user } = useAuthStore();
   const { confirm, showToast } = useDialog();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [viewMode, setViewMode] = useState<'GRID' | 'STAGES'>('GRID');
+  const [viewMode, setViewMode] = useState<'GRID' | 'STAGES'>('STAGES');
   const [projectStages, setProjectStages] = useState<{ id: string; name: string }[]>([]);
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
   const [editingStageName, setEditingStageName] = useState<string>('');
