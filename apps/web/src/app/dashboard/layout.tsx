@@ -124,7 +124,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar Desktop */}
       <aside
-        className={`hidden md:flex flex-col h-screen sticky top-0 border-r border-slate-200 bg-white transition-all duration-300 z-20 ${
+        className={`fixed inset-y-0 left-0 z-20 hidden md:flex flex-col border-r border-slate-200 bg-white transition-all duration-300 ${
           isSidebarCollapsed ? 'w-20' : 'w-64'
         }`}
       >
@@ -247,7 +247,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* Main View Container */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 pb-16 md:pb-0">
+      <div className={`flex-1 flex flex-col overflow-hidden min-w-0 pb-16 md:pb-0 transition-all duration-300 ${
+        isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
+      }`}>
         {/* Header */}
         <header className="h-16 border-b border-slate-900 flex items-center justify-between px-6 bg-slate-950/40 backdrop-blur-md z-10">
           <div className="flex items-center gap-4">
