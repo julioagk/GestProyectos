@@ -2,8 +2,8 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-  font-size: 80%;
+  --foreground: #0f172a;
+  font-size: 110%; /* Increase base font size for better visibility */
 }
 
 @theme inline {
@@ -15,8 +15,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #030712; /* Deep dark slate-950 background */
+    --foreground: #f8fafc; /* Crisp slate-50 foreground text for maximum readability */
   }
 }
 
@@ -24,4 +24,19 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global utility classes to enforce larger Lucide icons and higher visibility colors */
+svg {
+  stroke-width: 2.2px !important; /* Thicker strokes for easy reading */
+}
+
+.text-slate-400 {
+  color: #94a3b8 !important; /* Brighter gray for high contrast */
+}
+
+.text-slate-500 {
+  color: #cbd5e1 !important; /* Much lighter gray for better visibility */
 }
