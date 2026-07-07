@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { TenantGuard } from '../auth/tenant.guard';
 import { TaskStatus } from '../common/types';
+
+const CAN_CREATE_TASKS = ['MANAGER', 'COMPANY_ADMIN', 'SUPER_ADMIN'];
 
 @UseGuards(AuthGuard, TenantGuard)
 @Controller('tasks')
@@ -12,6 +14,9 @@ export class TasksController {
 
   @Post('project/:projectId')
   create(@Req() req: any, @Param('projectId') projectId: string, @Body() dto: CreateTaskDto) {
+    if (!CAN_CREATE_TASKS.includes(req.user.role)) {
+      throw new ForbiddenException('Solo los gestores pueden crear tareas');
+    }
     return this.tasksService.createTask(req.user.companyId, projectId, req.user.sub, dto);
   }
 

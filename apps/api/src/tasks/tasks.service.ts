@@ -71,7 +71,7 @@ export class TasksService {
         description: dto.description,
         status: dto.status || TaskStatus.PENDING,
         priority: dto.priority || 'MEDIUM',
-        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        startDate: dto.startDate ? new Date(dto.startDate) : new Date(),
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         estimatedHours: dto.estimatedHours || 0,
         workedHours: dto.workedHours || 0,

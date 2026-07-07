@@ -121,7 +121,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [inlineTaskTitles, setInlineTaskTitles] = useState<Record<string, string>>({});
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
-  // Custom Kanban Columns / Stages
+  // Project's team info for filtering assignees
+  const [projectTeamId, setProjectTeamId] = useState<string | null>(null);
   const [columns, setColumns] = useState<any[]>([]);
   const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
   const [editingColumnName, setEditingColumnName] = useState('');
@@ -314,6 +315,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       if (!projRes.ok) throw new Error();
       const projData = await projRes.json();
       setProject(projData);
+      setProjectTeamId(projData.teamId || null);
 
       // Tasks info
       const tasksRes = await fetch(`${apiUrl}/tasks/project/${projectId}`, {
@@ -356,6 +358,13 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           const teamsData = await teamsRes.json();
           const allUsers: any[] = [];
           const seenUserIds = new Set();
+
+          // Filter: only show members from the project's team if teamId is set
+          const projectTeam = projData.teamId
+            ? teamsData.find((t: any) => t.id === projData.teamId)
+            : null;
+          const teamsToScan = projectTeam ? [projectTeam] : teamsData;
+
           if (user?.id) {
             const normalizedId = user.id.trim().toLowerCase();
             seenUserIds.add(normalizedId);
@@ -367,7 +376,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               role: user.role
             });
           }
-          teamsData.forEach((team: any) => {
+          teamsToScan.forEach((team: any) => {
             team.members?.forEach((m: any) => {
               if (m.user && m.user.id) {
                 const normalizedId = m.user.id.trim().toLowerCase();
@@ -988,6 +997,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           </p>
         </div>
 
+        {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'SUPER_ADMIN') && (
         <button
           onClick={() => {
             setNewStatus('PENDING');
@@ -998,6 +1008,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           <Plus size={16} className="mr-1.5" />
           Nueva Tarea
         </button>
+        )}
       </div>
 
       {/* Tab Switcher: Kanban | Archivos */}
