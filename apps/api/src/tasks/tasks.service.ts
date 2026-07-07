@@ -46,6 +46,36 @@ export class TasksService {
     return prev + 'h';
   }
 
+  // Sincroniza el estado del proyecto con base en el estado de todas sus tareas de primer nivel
+  private async syncProjectStatus(projectId: string) {
+    const tasks = await this.prisma.task.findMany({
+      where: { projectId, parentId: null },
+    });
+
+    if (tasks.length === 0) return;
+
+    const allInReview = tasks.every(t => t.status === 'IN_REVIEW');
+    const allCompleted = tasks.every(t => t.status === 'COMPLETED');
+
+    let targetStatus = 'IN_PROGRESS';
+    if (allCompleted) {
+      targetStatus = 'COMPLETED';
+    } else if (allInReview) {
+      targetStatus = 'IN_REVIEW';
+    }
+
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (project && project.status !== targetStatus) {
+      await this.prisma.project.update({
+        where: { id: projectId },
+        data: { status: targetStatus },
+      });
+    }
+  }
+
   // --------------------------------------------------
   // TAREAS (TASKS)
   // --------------------------------------------------
@@ -97,6 +127,7 @@ export class TasksService {
       description: `${user?.firstName} ${user?.lastName} creó la tarea "${task.title}"`,
     });
 
+    await this.syncProjectStatus(projectId);
     return task;
   }
 
@@ -235,6 +266,7 @@ export class TasksService {
       });
     }
 
+    await this.syncProjectStatus(existingTask.projectId);
     return updatedTask;
   }
 
@@ -254,6 +286,7 @@ export class TasksService {
       description: `${user?.firstName} ${user?.lastName} eliminó la tarea "${task.title}"`,
     });
 
+    await this.syncProjectStatus(task.projectId);
     return { success: true };
   }
 
@@ -299,6 +332,7 @@ export class TasksService {
       }
     }
 
+    await this.syncProjectStatus(existingTask.projectId);
     return updatedTask;
   }
 

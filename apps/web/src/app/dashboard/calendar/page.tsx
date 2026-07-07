@@ -14,10 +14,15 @@ interface Task {
   project: {
     name: string;
   };
+  responsibles?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  }[];
 }
 
 export default function CalendarPage() {
-  const { accessToken } = useAuthStore();
+  const { accessToken, user } = useAuthStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -59,7 +64,15 @@ export default function CalendarPage() {
               allTasks.push(...projectTasks.map((t: any) => ({ ...t, project: { name: proj.name } })));
             }
           }
-          setTasks(allTasks.filter(t => t.dueDate)); // Solo tareas con fecha límite
+          
+          let filtered = allTasks.filter(t => t.dueDate);
+          // Si es empleado, filtrar solo sus tareas asignadas
+          if (user?.role === 'EMPLOYEE') {
+            filtered = filtered.filter((t: any) => 
+              Array.isArray(t.responsibles) && t.responsibles.some((r: any) => r.id === user.id)
+            );
+          }
+          setTasks(filtered);
         }
       } catch (err) {
         console.error('Error fetching calendar tasks:', err);
@@ -71,7 +84,7 @@ export default function CalendarPage() {
     if (accessToken) {
       fetchAllTasks();
     }
-  }, [accessToken]);
+  }, [accessToken, user]);
 
   // Calendar math
   const year = currentDate.getFullYear();
@@ -168,15 +181,81 @@ export default function CalendarPage() {
           Cargando calendario...
         </div>
       ) : (
-        <div className="space-y-4">
-          {/* Days of week header */}
-          <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            {daysOfWeek.map(d => <div key={d}>{d}</div>)}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Calendario (Izquierda) */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Days of week header */}
+            <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+              {daysOfWeek.map(d => <div key={d}>{d}</div>)}
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-2">
+              {gridItems}
+            </div>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
-            {gridItems}
+          {/* Panel Lateral: Tareas Próximas a Vencer (Derecha) */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-slate-900 border border-slate-900 rounded-xl p-4.5 space-y-4 shadow-sm">
+              <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                Próximas a Vencer
+              </h2>
+              
+              {tasks.filter(t => t.status !== 'COMPLETED').length === 0 ? (
+                <p className="text-xs text-slate-500 italic">No tienes tareas pendientes con fecha límite.</p>
+              ) : (
+                <div className="space-y-3">
+                  {tasks
+                    .filter(t => t.status !== 'COMPLETED')
+                    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+                    .slice(0, 6)
+                    .map((task) => {
+                      const daysLeft = Math.ceil(
+                        (new Date(task.dueDate!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                      );
+                      
+                      let badgeColor = 'bg-slate-950 text-slate-400 border-slate-850';
+                      let label = `En ${daysLeft} días`;
+
+                      if (daysLeft < 0) {
+                        badgeColor = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                        label = 'Vencida';
+                      } else if (daysLeft === 0) {
+                        badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                        label = 'Vence hoy';
+                      } else if (daysLeft === 1) {
+                        badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                        label = 'Vence mañana';
+                      } else if (daysLeft <= 3) {
+                        badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                      }
+
+                      return (
+                        <Link
+                          href={`/dashboard/projects/${task.projectId}`}
+                          key={task.id}
+                          className="block p-3 bg-slate-950/40 border border-slate-950 hover:border-slate-850 rounded-xl transition-all space-y-1.5 group"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-xs font-bold text-slate-200 group-hover:text-emerald-400 transition-colors line-clamp-1">
+                              {task.title}
+                            </span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full border font-bold uppercase ${badgeColor} whitespace-nowrap`}>
+                              {label}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-[10px] text-slate-500">
+                            <span className="truncate max-w-[120px]">{task.project.name}</span>
+                            <span>{new Date(task.dueDate!).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
