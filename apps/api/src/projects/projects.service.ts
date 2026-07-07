@@ -50,9 +50,24 @@ export class ProjectsService {
     return project;
   }
 
-  async getProjects(companyId: string) {
+  async getProjects(companyId: string, userId?: string, userRole?: string) {
+    const isEmployee = userRole === 'EMPLOYEE';
+    let whereClause: any = { companyId };
+
+    if (isEmployee && userId) {
+      const memberTeams = await this.prisma.teamMember.findMany({
+        where: { userId },
+        select: { teamId: true },
+      });
+      const teamIds = memberTeams.map(t => t.teamId);
+      whereClause = {
+        companyId,
+        teamId: { in: teamIds },
+      };
+    }
+
     const projects = await this.prisma.project.findMany({
-      where: { companyId },
+      where: whereClause,
       include: {
         responsible: {
           select: {
@@ -90,9 +105,25 @@ export class ProjectsService {
     });
   }
 
-  async getProjectById(companyId: string, projectId: string) {
+  async getProjectById(companyId: string, projectId: string, userId?: string, userRole?: string) {
+    const isEmployee = userRole === 'EMPLOYEE';
+    let whereClause: any = { id: projectId, companyId };
+
+    if (isEmployee && userId) {
+      const memberTeams = await this.prisma.teamMember.findMany({
+        where: { userId },
+        select: { teamId: true },
+      });
+      const teamIds = memberTeams.map(t => t.teamId);
+      whereClause = {
+        id: projectId,
+        companyId,
+        teamId: { in: teamIds },
+      };
+    }
+
     const project = await this.prisma.project.findFirst({
-      where: { id: projectId, companyId },
+      where: whereClause,
       include: {
         responsible: {
           select: {

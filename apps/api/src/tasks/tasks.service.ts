@@ -131,9 +131,23 @@ export class TasksService {
     return task;
   }
 
-  async getTasks(companyId: string, projectId: string) {
+  async getTasks(companyId: string, projectId: string, userId?: string, userRole?: string) {
+    const isEmployee = userRole === 'EMPLOYEE';
+    let whereClause: any = { projectId, companyId, parentId: null };
+
+    if (isEmployee && userId) {
+      whereClause = {
+        projectId,
+        companyId,
+        parentId: null,
+        responsibles: {
+          some: { id: userId },
+        },
+      };
+    }
+
     return this.prisma.task.findMany({
-      where: { projectId, companyId, parentId: null }, // Solo tareas de nivel superior
+      where: whereClause, // Solo tareas de nivel superior
       include: {
         responsibles: {
           select: { id: true, firstName: true, lastName: true, avatarUrl: true },

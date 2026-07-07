@@ -22,7 +22,7 @@ export class TasksController {
 
   @Get('project/:projectId')
   findAll(@Req() req: any, @Param('projectId') projectId: string) {
-    return this.tasksService.getTasks(req.user.companyId, projectId);
+    return this.tasksService.getTasks(req.user.companyId, projectId, req.user.sub, req.user.role);
   }
 
   @Get(':id')

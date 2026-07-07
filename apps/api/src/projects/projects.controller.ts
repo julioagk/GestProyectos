@@ -16,7 +16,7 @@ export class ProjectsController {
 
   @Get()
   findAll(@Req() req: any) {
-    return this.projectsService.getProjects(req.user.companyId);
+    return this.projectsService.getProjects(req.user.companyId, req.user.sub, req.user.role);
   }
 
   @Get('dashboard/stats')
@@ -26,7 +26,7 @@ export class ProjectsController {
 
   @Get(':id')
   findOne(@Req() req: any, @Param('id') id: string) {
-    return this.projectsService.getProjectById(req.user.companyId, id);
+    return this.projectsService.getProjectById(req.user.companyId, id, req.user.sub, req.user.role);
   }
 
   @Put(':id')
