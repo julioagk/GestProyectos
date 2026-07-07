@@ -1550,6 +1550,75 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   🚀 Entregar Tarea (Enviar a Revisión)
                 </button>
               )}
+
+              {/* Panel de aprobación/rechazo para el Gestor */}
+              {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'SUPER_ADMIN') && selectedTask.status === 'IN_REVIEW' && (
+                <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5 shadow-sm">
+                  <p className="text-xs font-bold text-slate-850">Esta tarea ha sido entregada y requiere revisión:</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                          const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              Authorization: `Bearer ${accessToken}`,
+                            },
+                            body: JSON.stringify({
+                              title: selectedTask.title,
+                              status: 'COMPLETED',
+                            }),
+                          });
+                          if (res.ok) {
+                            showToast('Entrega aceptada. Tarea completada con éxito', 'success');
+                            setIsDrawerOpen(false);
+                            fetchProjectData();
+                          } else {
+                            throw new Error();
+                          }
+                        } catch {
+                          showToast('Error al aprobar la tarea', 'error');
+                        }
+                      }}
+                      className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition-all active:scale-[0.98]"
+                    >
+                      ✓ Aceptar Entrega
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                          const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              Authorization: `Bearer ${accessToken}`,
+                            },
+                            body: JSON.stringify({
+                              title: selectedTask.title,
+                              status: 'IN_PROGRESS',
+                            }),
+                          });
+                          if (res.ok) {
+                            showToast('Entrega rechazada. Tarea devuelta a "En Progreso"', 'warning');
+                            setIsDrawerOpen(false);
+                            fetchProjectData();
+                          } else {
+                            throw new Error();
+                          }
+                        } catch {
+                          showToast('Error al rechazar la tarea', 'error');
+                        }
+                      }}
+                      className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-sm transition-all active:scale-[0.98]"
+                    >
+                      ✕ Rechazar y Corregir
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Responsable de la tarea */}
