@@ -1030,6 +1030,37 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const getTaskEvidenceFiles = () => {
+    const list: any[] = [];
+    tasks.forEach((task) => {
+      if (Array.isArray(task.checklistItems)) {
+        task.checklistItems.forEach((item) => {
+          let itemProofs: Attachment[] = [];
+          const stateProofs = proofs[item.id];
+          if (Array.isArray(stateProofs)) {
+            itemProofs = stateProofs;
+          } else if ((item as any).proofs) {
+            try {
+              itemProofs = JSON.parse((item as any).proofs);
+            } catch {
+              itemProofs = [];
+            }
+          }
+
+          itemProofs.forEach((proof) => {
+            list.push({
+              ...proof,
+              taskTitle: task.title,
+              taskId: task.id,
+              checklistTitle: item.title,
+            });
+          });
+        });
+      }
+    });
+    return list;
+  };
+
   if (isLoading && !project) {
     return (
       <div className="py-24 flex flex-col justify-center items-center text-slate-500 text-sm gap-2">
@@ -1270,115 +1301,172 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
       {/* FILES TAB CONTENT */}
       {activeTab === 'FILES' && (
-        <div className="space-y-6">
-          {/* Upload Area */}
-          {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
-            <label className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-800 rounded-2xl cursor-pointer hover:border-emerald-500/30 transition-all group/upload bg-slate-900/10">
-              <Upload size={32} className="text-slate-600 group-hover/upload:text-emerald-400 transition-colors mb-2" />
-              <span className="text-sm text-slate-500 group-hover/upload:text-slate-300 transition-colors">Haz clic o arrastra archivos para subirlos</span>
-              <span className="text-[10px] text-slate-600 mt-1">PDF, Imágenes, Documentos (máx. 10MB)</span>
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    const newFile = {
-                      id: Date.now().toString(),
-                      name: file.name,
-                      size: file.size,
-                      mimeType: file.type,
-                      dataUrl: reader.result as string,
-                      uploadedAt: new Date().toISOString(),
-                      uploadedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
-                    };
-                    const updated = [newFile, ...projectFiles];
-                    setProjectFiles(updated);
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
-                    }
-                    showToast(`Archivo "${file.name}" subido con éxito`, 'success');
-                  };
-                  reader.readAsDataURL(file);
-                  e.target.value = '';
-                }}
-              />
-            </label>
-          )}
-
-          {/* Files List */}
-          {projectFiles.length === 0 ? (
-            <div className="py-16 text-center text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl">
-              <FileText size={32} className="mx-auto mb-2 text-slate-600" />
-              No hay archivos subidos aún en este proyecto.
+        <div className="space-y-8">
+          {/* Sección 1: Archivos Generales */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Archivos Generales del Proyecto</h2>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {projectFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between p-4 bg-slate-900/30 border border-slate-900 rounded-xl hover:border-slate-800 transition-all"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
-                      <FileText size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-200 truncate">{file.name}</p>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                        <span>{((file.size ?? 0) / 1024).toFixed(1)} KB</span>
-                        <span>•</span>
-                        <span>{file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : 'Sin fecha'}</span>
-                        {file.uploadedBy && (
-                          <>
-                            <span>•</span>
-                            <span>Por: {file.uploadedBy}</span>
-                          </>
-                        )}
+            
+            {/* Upload Area */}
+            {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
+              <label className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 rounded-2xl cursor-pointer hover:border-emerald-500/30 transition-all bg-slate-900/10">
+                <Upload size={24} className="text-slate-500 mb-1.5" />
+                <span className="text-xs font-semibold text-slate-500 hover:text-slate-700">Haz clic o arrastra archivos para subirlos</span>
+                <span className="text-[9px] text-slate-655 mt-0.5">PDF, Imágenes, Documentos (máx. 10MB)</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const newFile = {
+                        id: Date.now().toString(),
+                        name: file.name,
+                        size: file.size,
+                        mimeType: file.type,
+                        dataUrl: reader.result as string,
+                        uploadedAt: new Date().toISOString(),
+                        uploadedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+                      };
+                      const updated = [newFile, ...projectFiles];
+                      setProjectFiles(updated);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
+                      }
+                      showToast(`Archivo "${file.name}" subido con éxito`, 'success');
+                    };
+                    reader.readAsDataURL(file);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+            )}
+
+            {projectFiles.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-xl">
+                <FileText size={24} className="mx-auto mb-1.5 text-slate-400" />
+                No hay archivos subidos en este proyecto.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {projectFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-700 rounded-xl hover:border-slate-600 transition-all shadow-xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0">
+                        <FileText size={14} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 truncate">{file.name}</p>
+                        <div className="flex items-center gap-1.5 text-[9px] text-slate-500 mt-0.5 font-semibold">
+                          <span>{((file.size ?? 0) / 1024).toFixed(1)} KB</span>
+                          <span>•</span>
+                          <span>{file.uploadedBy || 'Sistema'}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => openAttachmentPreview(file)}
-                      className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition-all"
-                      title="Previsualizar"
-                      aria-label={`Previsualizar ${file.name}`}
-                    >
-                      <Eye size={14} />
-                    </button>
-                    <a
-                      href={file.dataUrl}
-                      download={file.name}
-                      className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition-all"
-                      title="Descargar"
-                    >
-                      <Download size={14} />
-                    </a>
-                    {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
-                        onClick={() => {
-                          const updated = projectFiles.filter((f) => f.id !== file.id);
-                          setProjectFiles(updated);
-                          if (typeof window !== 'undefined') {
-                            localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
-                          }
-                          showToast('Archivo eliminado', 'success');
-                        }}
-                        className="p-2 rounded-lg hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 transition-all"
-                        title="Eliminar archivo"
+                        type="button"
+                        onClick={() => openAttachmentPreview(file)}
+                        className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-500 hover:text-emerald-600 transition-all"
+                        title="Previsualizar"
                       >
-                        <Trash2 size={14} />
+                        <Eye size={13} />
                       </button>
-                    )}
+                      <a
+                        href={file.dataUrl}
+                        download={file.name}
+                        className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-500 hover:text-emerald-600 transition-all"
+                        title="Descargar"
+                      >
+                        <Download size={13} />
+                      </a>
+                      {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
+                        <button
+                          onClick={() => {
+                            const updated = projectFiles.filter((f) => f.id !== file.id);
+                            setProjectFiles(updated);
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
+                            }
+                            showToast('Archivo eliminado', 'success');
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 transition-all"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sección 2: Evidencias de Tareas (Para comodidad de revisión del Gestor) */}
+          <div className="space-y-4 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div>
+                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Evidencias y Entregas de Tareas</h2>
+                <p className="text-[9px] text-slate-500 font-semibold mt-0.5">Muestra todos los archivos subidos por los empleados dentro de las subtareas y checklists.</p>
+              </div>
             </div>
-          )}
+
+            {getTaskEvidenceFiles().length === 0 ? (
+              <div className="py-12 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-xl">
+                <Paperclip size={24} className="mx-auto mb-1.5 text-slate-400" />
+                No se han subido evidencias en las tareas de este proyecto todavía.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {getTaskEvidenceFiles().map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-700 rounded-xl hover:border-slate-600 transition-all shadow-xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 shrink-0">
+                        <Paperclip size={14} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-800 truncate">{file.name}</p>
+                        <div className="flex flex-col gap-0.5 mt-0.5 text-[9px] font-semibold text-slate-500">
+                          <span className="text-emerald-600 font-bold truncate">Tarea: {file.taskTitle}</span>
+                          <span className="truncate">Subtarea: {file.checklistTitle}</span>
+                          <span>Por: {file.uploadedBy || 'Empleado'} · {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : ''}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openAttachmentPreview(file)}
+                        className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-500 hover:text-emerald-600 transition-all"
+                        title="Previsualizar"
+                      >
+                        <Eye size={13} />
+                      </button>
+                      <a
+                        href={file.dataUrl}
+                        download={file.name}
+                        className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-500 hover:text-emerald-600 transition-all"
+                        title="Descargar"
+                      >
+                        <Download size={13} />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
