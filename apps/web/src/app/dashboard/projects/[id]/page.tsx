@@ -1277,8 +1277,9 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                           </div>
                         )}
                         <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                          task.priority === 'URGENT' ? 'bg-rose-100 text-rose-700' :
-                          task.priority === 'HIGH' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
+                          task.priority === 'URGENT' ? 'bg-rose-500/20 text-rose-400' :
+                          task.priority === 'HIGH' ? 'bg-amber-500/20 text-amber-400' :
+                          task.priority === 'MEDIUM' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700/30 text-slate-300'
                         }`}>
                           {task.priority === 'URGENT' ? 'Urgente' :
                            task.priority === 'HIGH' ? 'Alta' : 'Media'}
@@ -1649,7 +1650,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               <div className="flex justify-between items-start">
                 <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                   selectedTask.priority === 'URGENT' ? 'bg-rose-500/10 text-rose-400' :
-                  selectedTask.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
+                  selectedTask.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-400' :
+                  selectedTask.priority === 'MEDIUM' ? 'bg-blue-500/10 text-blue-400' : 'bg-slate-700/20 text-slate-300'
                 }`}>
                   {selectedTask.priority === 'URGENT' ? 'Prioridad Urgente' :
                    selectedTask.priority === 'HIGH' ? 'Prioridad Alta' : 'Prioridad Media'}
@@ -2126,7 +2128,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   onChange={(e) => setNewChecklistTitle(e.target.value)}
                   className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none"
                 />
-                <button type="submit" className="px-3 py-1 bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs">
+                <button type="submit" className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 hover:text-emerald-300 rounded-lg text-xs font-semibold transition-all">
                   Añadir
                 </button>
               </form>

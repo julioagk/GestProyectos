@@ -437,16 +437,17 @@ export default function ProjectsPage() {
       case 'IN_REVIEW': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'PAUSED': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
       case 'CANCELLED': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      default: return 'bg-slate-800 text-slate-400 border-slate-700/50';
+      default: return 'bg-slate-700/20 text-slate-300 border border-slate-700/50';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'URGENT': return 'bg-rose-500/10 text-rose-400';
-      case 'HIGH': return 'bg-amber-500/10 text-amber-400';
-      case 'MEDIUM': return 'bg-sky-500/10 text-sky-400';
-      default: return 'bg-slate-800 text-slate-400';
+      case 'URGENT': return 'bg-rose-500/15 text-rose-400 border border-rose-500/20';
+      case 'HIGH': return 'bg-amber-500/15 text-amber-400 border border-amber-500/20';
+      case 'MEDIUM': return 'bg-sky-500/15 text-sky-400 border border-sky-500/20';
+      case 'LOW': return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20';
+      default: return 'bg-slate-700/20 text-slate-300 border border-slate-700/50';
     }
   };
 

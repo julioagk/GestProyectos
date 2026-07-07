@@ -213,8 +213,9 @@ export default function DashboardPage() {
                       {project.name}
                     </h3>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      project.priority === 'URGENT' ? 'bg-rose-500/10 text-rose-400' :
-                      project.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-400'
+                      project.priority === 'URGENT' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
+                      project.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                      project.priority === 'MEDIUM' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-700/20 text-slate-300 border border-slate-700/50'
                     }`}>
                       {project.priority}
                     </span>
@@ -267,7 +268,7 @@ export default function DashboardPage() {
                           {task.title}
                         </span>
                         <span className={`text-[9px] px-1.5 py-0.5 rounded shrink-0 font-medium ${
-                          isOverdue ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700/50'
+                          isOverdue ? 'bg-rose-500/15 text-rose-400 border border-rose-500/20' : 'bg-sky-500/15 text-sky-400 border border-sky-500/20'
                         }`}>
                           {new Date(task.dueDate).toLocaleDateString()}
                         </span>
