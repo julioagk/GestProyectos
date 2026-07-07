@@ -196,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* Main View Container */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 pb-16 md:pb-0">
         {/* Header */}
         <header className="h-16 border-b border-slate-900 flex items-center justify-between px-6 bg-slate-950/40 backdrop-blur-md z-10">
           <div className="flex items-center gap-4">
@@ -226,6 +226,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
           {children}
         </main>
+      </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-slate-950 border-t border-slate-900 flex items-center justify-around px-2 md:hidden z-35 backdrop-blur-md bg-slate-950/90">
+        {navLinks.map((link) => {
+          const Icon = link.icon;
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+                isActive ? 'text-emerald-400 font-semibold' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <Icon size={20} />
+              <span className="text-[10px] mt-1">{link.name}</span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

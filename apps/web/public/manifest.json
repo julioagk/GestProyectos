@@ -1,0 +1,17 @@
+{
+  "name": "GestProyectos",
+  "short_name": "GestProyectos",
+  "description": "Sistema de gestión de proyectos, equipos y tareas",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#020817",
+  "theme_color": "#020817",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
