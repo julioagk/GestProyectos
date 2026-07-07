@@ -1516,6 +1516,40 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               <p className="text-xs text-slate-400 leading-relaxed bg-slate-950/40 p-3 rounded-xl border border-slate-900/50">
                 {selectedTask.description || 'Sin descripción detallada.'}
               </p>
+
+              {/* Botón de acción para el Empleado */}
+              {user?.role === 'EMPLOYEE' && selectedTask.status !== 'COMPLETED' && selectedTask.status !== 'IN_REVIEW' && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                      const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${accessToken}`,
+                        },
+                        body: JSON.stringify({
+                          title: selectedTask.title,
+                          status: 'IN_REVIEW',
+                        }),
+                      });
+                      if (res.ok) {
+                        showToast('Tarea entregada y enviada a revisión con éxito', 'success');
+                        setIsDrawerOpen(false);
+                        fetchProjectData();
+                      } else {
+                        throw new Error();
+                      }
+                    } catch {
+                      showToast('Error al entregar la tarea', 'error');
+                    }
+                  }}
+                  className="w-full flex justify-center items-center py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-md transition-all active:scale-[0.98]"
+                >
+                  🚀 Entregar Tarea (Enviar a Revisión)
+                </button>
+              )}
             </div>
 
             {/* Responsable de la tarea */}
