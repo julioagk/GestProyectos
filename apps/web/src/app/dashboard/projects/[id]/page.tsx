@@ -149,6 +149,10 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [openChecklistId, setOpenChecklistId] = useState<string | null>(null);
   const [proofs, setProofs] = useState<Record<string, Attachment[]>>({});
 
+  // Rejection states
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isRejectionInputVisible, setIsRejectionInputVisible] = useState(false);
+
 
 
   useEffect(() => {
@@ -1698,68 +1702,119 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'SUPER_ADMIN') && selectedTask.status === 'IN_REVIEW' && (
                 <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2.5 shadow-sm">
                   <p className="text-xs font-bold text-slate-850">Esta tarea ha sido entregada y requiere revisión:</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        try {
-                          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-                          const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
-                            method: 'PUT',
-                            headers: {
-                              'Content-Type': 'application/json',
-                              Authorization: `Bearer ${accessToken}`,
-                            },
-                            body: JSON.stringify({
-                              title: selectedTask.title,
-                              status: 'COMPLETED',
-                            }),
-                          });
-                          if (res.ok) {
-                            showToast('Entrega aceptada. Tarea completada con éxito', 'success');
-                            setIsDrawerOpen(false);
-                            fetchProjectData();
-                          } else {
-                            throw new Error();
+                  
+                  {!isRejectionInputVisible ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                            const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+                              method: 'PUT',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${accessToken}`,
+                              },
+                              body: JSON.stringify({
+                                title: selectedTask.title,
+                                status: 'COMPLETED',
+                              }),
+                            });
+                            if (res.ok) {
+                              showToast('Entrega aceptada. Tarea completada con éxito', 'success');
+                              setIsDrawerOpen(false);
+                              fetchProjectData();
+                            } else {
+                              throw new Error();
+                            }
+                          } catch {
+                            showToast('Error al aprobar la tarea', 'error');
                           }
-                        } catch {
-                          showToast('Error al aprobar la tarea', 'error');
-                        }
-                      }}
-                      className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition-all active:scale-[0.98]"
-                    >
-                      ✓ Aceptar Entrega
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-                          const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
-                            method: 'PUT',
-                            headers: {
-                              'Content-Type': 'application/json',
-                              Authorization: `Bearer ${accessToken}`,
-                            },
-                            body: JSON.stringify({
-                              title: selectedTask.title,
-                              status: 'IN_PROGRESS',
-                            }),
-                          });
-                          if (res.ok) {
-                            showToast('Entrega rechazada. Tarea devuelta a "En Progreso"', 'warning');
-                            setIsDrawerOpen(false);
-                            fetchProjectData();
-                          } else {
-                            throw new Error();
-                          }
-                        } catch {
-                          showToast('Error al rechazar la tarea', 'error');
-                        }
-                      }}
-                      className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-sm transition-all active:scale-[0.98]"
-                    >
-                      ✕ Rechazar y Corregir
-                    </button>
-                  </div>
+                        }}
+                        className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition-all active:scale-[0.98]"
+                      >
+                        ✓ Aceptar Entrega
+                      </button>
+                      <button
+                        onClick={() => setIsRejectionInputVisible(true)}
+                        className="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-sm transition-all active:scale-[0.98]"
+                      >
+                        ✕ Rechazar y Corregir
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 pt-1 border-t border-slate-800/60">
+                      <label className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                        Escribe el motivo del rechazo o nota de corrección:
+                      </label>
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Ej: Falta subir el archivo final en PDF o corregir el formato del logo..."
+                        rows={3}
+                        className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-350 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setIsRejectionInputVisible(false);
+                            setRejectionReason('');
+                          }}
+                          className="py-1.5 px-3 rounded-md text-xs font-bold text-slate-450 hover:text-slate-200 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!rejectionReason.trim()) {
+                              showToast('Debes ingresar una nota para explicar el rechazo', 'warning');
+                              return;
+                            }
+                            try {
+                              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                              
+                              // 1. Cambiar estado de la tarea a IN_PROGRESS
+                              const res = await fetch(`${apiUrl}/tasks/${selectedTask.id}`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  Authorization: `Bearer ${accessToken}`,
+                                },
+                                body: JSON.stringify({
+                                  title: selectedTask.title,
+                                  status: 'IN_PROGRESS',
+                                }),
+                              });
+                              if (!res.ok) throw new Error();
+
+                              // 2. Publicar la nota de rechazo como comentario destacado en el chat
+                              await fetch(`${apiUrl}/tasks/${selectedTask.id}/comments`, {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  Authorization: `Bearer ${accessToken}`,
+                                },
+                                body: JSON.stringify({
+                                  content: `🔴 **OBSERVACIONES DE RECHAZO / CORRECCIÓN SOLICITADA:**\n\n${rejectionReason.trim()}`,
+                                }),
+                              });
+
+                              showToast('Tarea devuelta a "En Progreso" y nota enviada al chat', 'warning');
+                              setIsRejectionInputVisible(false);
+                              setRejectionReason('');
+                              setIsDrawerOpen(false);
+                              fetchProjectData();
+                            } catch {
+                              showToast('Error al procesar el rechazo de la tarea', 'error');
+                            }
+                          }}
+                          className="py-1.5 px-3 rounded-md text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-colors active:scale-[0.97]"
+                        >
+                          Confirmar Devolución
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
