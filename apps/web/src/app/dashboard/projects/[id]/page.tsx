@@ -1598,7 +1598,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                           onChange={(e) => {
                             if (e.target.checked) {
                               if (newResponsibleIds.length >= 2) {
-                                showToast('Máximo 2 responsables por tarea', 'warning');
+                                showToast('Máximo 2 responsables por tarea', 'info');
                                 return;
                               }
                               setNewResponsibleIds([...newResponsibleIds, m.id]);
@@ -1780,7 +1780,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         <button
                           onClick={async () => {
                             if (!rejectionReason.trim()) {
-                              showToast('Debes ingresar una nota para explicar el rechazo', 'warning');
+                              showToast('Debes ingresar una nota para explicar el rechazo', 'info');
                               return;
                             }
                             try {
@@ -1812,7 +1812,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                                 }),
                               });
 
-                              showToast('Tarea devuelta a "En Progreso" y nota enviada al chat', 'warning');
+                              showToast('Tarea devuelta a "En Progreso" y nota enviada al chat', 'info');
                               setIsRejectionInputVisible(false);
                               setRejectionReason('');
                               setIsDrawerOpen(false);
@@ -1852,7 +1852,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                             const currentIds = currentResponsibles.map(r => r.id);
                             if (e.target.checked) {
                               if (currentIds.length >= 2) {
-                                showToast('Máximo 2 responsables por tarea', 'warning');
+                                showToast('Máximo 2 responsables por tarea', 'info');
                                 return;
                               }
                               handleReassignTask([...currentIds, m.id]);
