@@ -122,6 +122,15 @@ export class TasksService {
             dependsOnTask: true,
           },
         },
+        comments: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+            },
+            reactions: true,
+          },
+        },
       },
       orderBy: { kanbanOrder: 'asc' },
     });

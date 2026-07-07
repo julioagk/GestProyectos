@@ -54,6 +54,7 @@ interface Task {
   }[];
   subtasks?: any[];
   dependencies?: any[];
+  comments?: Comment[];
   createdAt?: string;
 }
 
@@ -1032,6 +1033,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const getTaskEvidenceFiles = () => {
     const list: any[] = [];
     tasks.forEach((task) => {
+      // 1. Evidencias de los ChecklistItems
       if (Array.isArray(task.checklistItems)) {
         task.checklistItems.forEach((item) => {
           let itemProofs: Attachment[] = [];
@@ -1054,6 +1056,36 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               checklistTitle: item.title,
             });
           });
+        });
+      }
+
+      // 2. Archivos e imágenes adjuntos de los Comentarios de la tarea
+      if (Array.isArray(task.comments)) {
+        task.comments.forEach((comment: any) => {
+          const content = comment.content || '';
+          // Regex para detectar ![nombre](dataUrl) o [nombre](dataUrl)
+          const regex = /!?\[(.*?)\]\((data:.*?;base64,.*?)\)/g;
+          let match;
+          while ((match = regex.exec(content)) !== null) {
+            const fileName = match[1];
+            const dataUrl = match[2];
+            
+            // Inferencia de tipo MIME
+            const mimeMatch = dataUrl.match(/^data:(.*?);/);
+            const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+            
+            list.push({
+              id: comment.id,
+              name: fileName,
+              dataUrl,
+              mimeType,
+              uploadedBy: comment.user ? `${comment.user.firstName} ${comment.user.lastName}`.trim() : 'Colaborador',
+              uploadedAt: comment.createdAt,
+              taskTitle: task.title,
+              taskId: task.id,
+              checklistTitle: 'Chat en Vivo',
+            });
+          }
         });
       }
     });
