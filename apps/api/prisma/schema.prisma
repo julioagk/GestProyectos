@@ -92,7 +92,7 @@ model User {
 
   teams        TeamMember[]
   managedProjects Project[]  @relation("ProjectResponsible")
-  assignedTasks   Task[]     @relation("TaskResponsible")
+  assignedTasks   Task[]     @relation("TaskResponsibles")
   comments     Comment[]
   reactions    Reaction[]
   activities   ActivityLog[]
@@ -181,8 +181,7 @@ model Task {
   company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
   projectId      String
   project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  responsibleId  String?
-  responsible    User?       @relation("TaskResponsible", fields: [responsibleId], references: [id], onDelete: SetNull)
+  responsibles   User[]      @relation("TaskResponsibles")
   parentId       String?
   parent         Task?       @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   createdAt      DateTime    @default(now())

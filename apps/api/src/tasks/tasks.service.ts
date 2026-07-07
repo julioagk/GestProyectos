@@ -77,10 +77,9 @@ export class TasksService {
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         estimatedHours: dto.estimatedHours || 0,
         workedHours: dto.workedHours || 0,
-        kanbanOrder,
-        companyId,
-        projectId,
-        responsibleId: dto.responsibleId,
+        responsibles: dto.responsibleIds ? {
+          connect: dto.responsibleIds.map(id => ({ id }))
+        } : undefined,
         parentId: dto.parentId,
       },
     });
@@ -102,7 +101,7 @@ export class TasksService {
     return this.prisma.task.findMany({
       where: { projectId, companyId, parentId: null }, // Solo tareas de nivel superior
       include: {
-        responsible: {
+        responsibles: {
           select: { id: true, firstName: true, lastName: true, avatarUrl: true },
         },
         checklistItems: {
@@ -110,7 +109,7 @@ export class TasksService {
         },
         subtasks: {
           include: {
-            responsible: {
+            responsibles: {
               select: { id: true, firstName: true, lastName: true, avatarUrl: true },
             },
           },
@@ -130,7 +129,7 @@ export class TasksService {
       where: { id: taskId, companyId },
       include: {
         project: true,
-        responsible: {
+        responsibles: {
           select: { id: true, firstName: true, lastName: true, avatarUrl: true },
         },
         checklistItems: {
@@ -138,7 +137,7 @@ export class TasksService {
         },
         subtasks: {
           include: {
-            responsible: {
+            responsibles: {
               select: { id: true, firstName: true, lastName: true, avatarUrl: true },
             },
           },
@@ -185,7 +184,9 @@ export class TasksService {
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         estimatedHours: dto.estimatedHours,
         workedHours: dto.workedHours,
-        responsibleId: dto.responsibleId,
+        responsibles: dto.responsibleIds ? {
+          set: dto.responsibleIds.map(id => ({ id }))
+        } : undefined,
         kanbanOrder: dto.kanbanOrder,
       },
     });

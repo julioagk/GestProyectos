@@ -34,9 +34,8 @@ export class CreateTaskDto {
   @IsOptional()
   workedHours?: number;
 
-  @IsString()
   @IsOptional()
-  responsibleId?: string;
+  responsibleIds?: string[];
 
   @IsString()
   @IsOptional()

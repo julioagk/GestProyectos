@@ -100,7 +100,7 @@ graph LR
 ### ➡️ Paso 3: Crear y Asignar Tareas
 1. Entra al proyecto creado.
 2. Presiona **"+ Nueva Tarea"** para abrir el creador o usa la barra rápida de la columna.
-3. Al seleccionar el **Responsable**, el sistema inteligentemente filtrará y mostrará **únicamente a los empleados que pertenecen al equipo del proyecto** seleccionado en el Paso 2 (evitando asignaciones incorrectas).
+3. El sistema te permite seleccionar **hasta 2 responsables** simultáneamente usando checkboxes. El listado filtrará automáticamente para mostrar **únicamente a los empleados del equipo asignado al proyecto** (evitando asignaciones incorrectas). En el tablero Kanban, las iniciales de ambos responsables aparecerán de forma apilada en la tarjeta.
 
 ### ➡️ Paso 4: Trabajo y Entrega (Empleado)
 1. El empleado abre su tarea en el tablero y la arrastra a **"En Proceso"**.

@@ -41,12 +41,12 @@ interface Task {
   estimatedHours: number;
   workedHours: number;
   kanbanOrder: string;
-  responsible?: {
+  responsibles?: {
     id: string;
     firstName: string;
     lastName: string;
     avatarUrl?: string;
-  };
+  }[];
   checklistItems?: {
     id: string;
     title: string;
@@ -116,7 +116,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [newStatus, setNewStatus] = useState<'PENDING' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED'>('PENDING');
   const [newDueDate, setNewDueDate] = useState('');
   const [newEstimatedHours, setNewEstimatedHours] = useState(0);
-  const [newResponsibleId, setNewResponsibleId] = useState('');
+  const [newResponsibleIds, setNewResponsibleIds] = useState<string[]>([]);
   const [membersList, setMembersList] = useState<any[]>([]);
   const [inlineTaskTitles, setInlineTaskTitles] = useState<Record<string, string>>({});
   const [isCreatingTask, setIsCreatingTask] = useState(false);
@@ -716,7 +716,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           priority: newPriority,
           dueDate: newDueDate ? new Date(newDueDate).toISOString() : undefined,
           estimatedHours: Number(newEstimatedHours),
-          responsibleId: newResponsibleId || undefined,
+          responsibleIds: newResponsibleIds,
         }),
       });
 
@@ -727,7 +727,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       setNewPriority('MEDIUM');
       setNewDueDate('');
       setNewEstimatedHours(0);
-      setNewResponsibleId('');
+      setNewResponsibleIds([]);
       setIsTaskModalOpen(false);
 
       fetchProjectData();
@@ -861,7 +861,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const handleReassignTask = async (newAssigneeId: string) => {
+  const handleReassignTask = async (newAssigneeIds: string[]) => {
     if (!selectedTask) return;
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -879,29 +879,28 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           dueDate: selectedTask.dueDate,
           estimatedHours: selectedTask.estimatedHours,
           workedHours: selectedTask.workedHours,
-          responsibleId: newAssigneeId || null,
+          responsibleIds: newAssigneeIds,
         }),
       });
       if (!res.ok) throw new Error();
       
-      const updatedResponsible = newAssigneeId 
-        ? membersList.find((m) => m.id === newAssigneeId)
-        : undefined;
+      const updatedResponsibles = membersList.filter((m) => newAssigneeIds.includes(m.id))
+        .map((m) => ({
+          id: m.id,
+          firstName: m.firstName,
+          lastName: m.lastName,
+          avatarUrl: m.avatarUrl,
+        }));
 
       setSelectedTask({
         ...selectedTask,
-        responsible: updatedResponsible ? {
-          id: updatedResponsible.id,
-          firstName: updatedResponsible.firstName,
-          lastName: updatedResponsible.lastName,
-          avatarUrl: updatedResponsible.avatarUrl,
-        } : undefined,
+        responsibles: updatedResponsibles,
       });
 
       fetchProjectData();
-      showToast('Responsable actualizado con éxito', 'success');
+      showToast('Responsables actualizados con éxito', 'success');
     } catch {
-      showToast('Error al actualizar el responsable', 'error');
+      showToast('Error al actualizar los responsables', 'error');
     }
   };
 
@@ -1221,12 +1220,17 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {task.responsible ? (
-                          <div 
-                            className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-[8px]"
-                            title={`Responsable: ${task.responsible.firstName} ${task.responsible.lastName}`}
-                          >
-                            {task.responsible.firstName[0]}{task.responsible.lastName[0]}
+                        {task.responsibles && task.responsibles.length > 0 ? (
+                          <div className="flex -space-x-1.5 overflow-hidden">
+                            {task.responsibles.map((resp) => (
+                              <div 
+                                key={resp.id}
+                                className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 border border-white flex items-center justify-center font-bold text-[8px] ring-1 ring-emerald-500/20"
+                                title={`Responsable: ${resp.firstName} ${resp.lastName}`}
+                              >
+                                {resp.firstName[0]}{resp.lastName[0]}
+                              </div>
+                            ))}
                           </div>
                         ) : (
                           <div 
@@ -1540,21 +1544,40 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Asignar a (Responsable)
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Asignar a (Responsables - Máx. 2)
                 </label>
-                <select
-                  value={newResponsibleId}
-                  onChange={(e) => setNewResponsibleId(e.target.value)}
-                  className="mt-1 block w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 text-sm focus:outline-none"
-                >
-                  <option value="">Sin asignar / Libre</option>
-                  {membersList.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.firstName} {m.lastName} ({m.role === 'MANAGER' ? 'Gestor' : 'Empleado'})
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  {membersList.length === 0 && (
+                    <span className="text-xs text-slate-500 italic">No hay miembros en el equipo de este proyecto.</span>
+                  )}
+                  {membersList.map((m) => {
+                    const isChecked = newResponsibleIds.includes(m.id);
+                    return (
+                      <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-900 cursor-pointer select-none transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              if (newResponsibleIds.length >= 2) {
+                                showToast('Máximo 2 responsables por tarea', 'warning');
+                                return;
+                              }
+                              setNewResponsibleIds([...newResponsibleIds, m.id]);
+                            } else {
+                              setNewResponsibleIds(newResponsibleIds.filter(id => id !== m.id));
+                            }
+                          }}
+                          className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 h-3.5 w-3.5"
+                        />
+                        <span className="text-xs font-semibold text-slate-350">
+                          {m.firstName} {m.lastName} <span className="text-[9px] text-slate-500">({m.role === 'MANAGER' ? 'Gestor' : 'Empleado'})</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="pt-4 flex gap-3 justify-end border-t border-slate-800/80">
@@ -1711,32 +1734,64 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
             {/* Responsable de la tarea */}
             <div className="space-y-1.5">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Responsable</span>
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Responsables (Máx. 2)</span>
               {user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' ? (
-                <select
-                  value={selectedTask.responsible?.id || ''}
-                  onChange={(e) => handleReassignTask(e.target.value)}
-                  className="block w-full px-3 py-2 bg-slate-950 border border-slate-800/80 rounded-xl text-slate-350 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-slate-950"
-                >
-                  <option value="">Sin asignar / Libre</option>
-                  {membersList.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.firstName} {m.lastName} ({m.role === 'MANAGER' ? 'Gestor' : 'Empleado'})
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto p-3 bg-slate-950 border border-slate-850 rounded-xl">
+                  {membersList.length === 0 && (
+                    <span className="text-xs text-slate-500 italic">No hay miembros en el equipo de este proyecto.</span>
+                  )}
+                  {membersList.map((m) => {
+                    const currentResponsibles = selectedTask.responsibles || [];
+                    const isChecked = currentResponsibles.some(r => r.id === m.id);
+                    return (
+                      <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-900 cursor-pointer select-none transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentIds = currentResponsibles.map(r => r.id);
+                            if (e.target.checked) {
+                              if (currentIds.length >= 2) {
+                                showToast('Máximo 2 responsables por tarea', 'warning');
+                                return;
+                              }
+                              handleReassignTask([...currentIds, m.id]);
+                            } else {
+                              handleReassignTask(currentIds.filter(id => id !== m.id));
+                            }
+                          }}
+                          className="rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950 h-3.5 w-3.5"
+                        />
+                        <span className="text-xs font-semibold text-slate-350">
+                          {m.firstName} {m.lastName} <span className="text-[9px] text-slate-500">({m.role === 'MANAGER' ? 'Gestor' : 'Empleado'})</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 bg-slate-950/40 border border-slate-900 rounded-xl">
-                  <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-[10px]">
-                    {selectedTask.responsible 
-                      ? `${selectedTask.responsible.firstName[0]}${selectedTask.responsible.lastName[0]}`
-                      : '?'}
-                  </div>
-                  <span className="text-xs text-slate-300">
-                    {selectedTask.responsible 
-                      ? `${selectedTask.responsible.firstName} ${selectedTask.responsible.lastName}`
-                      : 'Sin asignar'}
-                  </span>
+                <div className="space-y-2">
+                  {!selectedTask.responsibles || selectedTask.responsibles.length === 0 ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-slate-950/40 border border-slate-900 rounded-xl">
+                      <div className="h-5 w-5 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 font-bold text-[10px]">
+                        ?
+                      </div>
+                      <span className="text-xs text-slate-500 italic">Sin asignar</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1.5">
+                      {selectedTask.responsibles.map((resp) => (
+                        <div key={resp.id} className="flex items-center gap-2 px-3 py-2 bg-slate-950/40 border border-slate-900 rounded-xl">
+                          <div className="h-5 w-5 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-[10px] ring-1 ring-emerald-500/10">
+                            {resp.firstName[0]}{resp.lastName[0]}
+                          </div>
+                          <span className="text-xs text-slate-300 font-semibold">
+                            {resp.firstName} {resp.lastName}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
