@@ -555,7 +555,7 @@ export class TasksService {
         role: { in: ['MANAGER', 'COMPANY_ADMIN', 'SUPER_ADMIN'] },
         id: { not: userId } // Evitar enviarse a sí mismo
       },
-      select: { id: true }
+      select: { id: true, email: true, firstName: true, lastName: true }
     });
 
     const managerIds = managers.map(m => m.id);
@@ -573,5 +573,35 @@ export class TasksService {
       managerIds,
       `/dashboard/projects/${task.projectId}`
     );
+
+    // Enviar correo a administradores/gestores cuando una tarea pasa a En Revisión
+    if (newStatus === 'IN_REVIEW') {
+      try {
+        const webUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const projectUrl = `${webUrl}/dashboard/projects/${task.projectId}`;
+        const mailTitle = `Tarea en revisión: ${task.title}`;
+
+        for (const manager of managers) {
+          if (!manager.email) continue;
+
+          const mailBody = `
+            <p>Hola <strong>${manager.firstName} ${manager.lastName}</strong>,</p>
+            <p>El empleado <strong>${user.firstName} ${user.lastName}</strong> ha cambiado el estado de la tarea <strong>${task.title}</strong> a <strong>EN REVISIÓN</strong> y ha presentado los entregables.</p>
+            <p>Puedes acceder al proyecto para revisar los archivos adjuntos, dejar observaciones de corrección o aprobar la entrega de la tarea.</p>
+          `;
+
+          const html = this.emailService.getEmailTemplate(
+            'Tarea Presentada para Revisión',
+            mailBody,
+            projectUrl,
+            'Ver Entrega de la Tarea'
+          );
+
+          this.emailService.sendEmail(manager.email, mailTitle, html).catch(() => {});
+        }
+      } catch (err) {
+        // Silencioso
+      }
+    }
   }
 }
