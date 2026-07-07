@@ -77,10 +77,13 @@ export class TasksService {
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         estimatedHours: dto.estimatedHours || 0,
         workedHours: dto.workedHours || 0,
+        kanbanOrder,
+        companyId,
+        projectId,
         responsibles: dto.responsibleIds ? {
           connect: dto.responsibleIds.map(id => ({ id }))
         } : undefined,
-        parentId: dto.parentId,
+        parentId: dto.parentId || undefined,
       },
     });
 
