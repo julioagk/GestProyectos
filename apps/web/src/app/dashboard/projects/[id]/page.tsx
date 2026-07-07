@@ -2107,70 +2107,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                                 </div>
                               ))}
 
-                              {/* Attachment Preview Modal */}
-                              {previewAttachment && (
-                                <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={closeAttachmentPreview}>
-                                  <div
-                                    className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <div className="flex items-start justify-between gap-4 p-4 border-b border-slate-800 bg-slate-950/50">
-                                      <div className="min-w-0">
-                                        <h3 className="text-sm font-semibold text-slate-100 truncate">{previewAttachment.name}</h3>
-                                        <p className="text-[11px] text-slate-500 mt-1">
-                                          {previewAttachment.uploadedAt ? new Date(previewAttachment.uploadedAt).toLocaleString() : 'Vista previa inmediata'}
-                                          {previewAttachment.uploadedBy ? ` · ${previewAttachment.uploadedBy}` : ''}
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-2 shrink-0">
-                                        <a
-                                          href={previewAttachment.dataUrl}
-                                          download={previewAttachment.name}
-                                          className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors"
-                                        >
-                                          Descargar
-                                        </a>
-                                        <button
-                                          type="button"
-                                          onClick={closeAttachmentPreview}
-                                          className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-                                          aria-label="Cerrar vista previa"
-                                        >
-                                          <X size={16} />
-                                        </button>
-                                      </div>
-                                    </div>
 
-                                    <div className="flex-1 min-h-0 bg-slate-950/60 p-4">
-                                      {getPreviewKind(previewAttachment) === 'image' ? (
-                                        <div className="relative h-[70vh] overflow-auto rounded-2xl border border-slate-800 bg-slate-950 p-3">
-                                          <Image
-                                            src={previewAttachment.dataUrl}
-                                            alt={previewAttachment.name}
-                                            fill
-                                            unoptimized
-                                            className="object-contain rounded-xl shadow-lg"
-                                          />
-                                        </div>
-                                      ) : getPreviewKind(previewAttachment) === 'pdf' || getPreviewKind(previewAttachment) === 'text' ? (
-                                        <iframe
-                                          src={previewAttachment.dataUrl}
-                                          title={previewAttachment.name}
-                                          className="w-full h-[70vh] rounded-2xl border border-slate-800 bg-slate-950"
-                                        />
-                                      ) : (
-                                        <div className="h-[70vh] flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800 bg-slate-950 text-center px-6">
-                                          <FileText size={36} className="text-slate-600 mb-3" />
-                                          <p className="text-sm font-semibold text-slate-200">No hay vista previa disponible para este archivo.</p>
-                                          <p className="text-xs text-slate-500 mt-2 max-w-md">
-                                            Puedes descargarlo para abrirlo en tu equipo o subir una imagen, PDF o archivo de texto para verlo aquí.
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           )}
                         </div>
@@ -2257,6 +2194,70 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   </button>
                 </form>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Attachment Preview Modal */}
+      {previewAttachment && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={closeAttachmentPreview}>
+          <div
+            className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 p-4 border-b border-slate-800 bg-slate-950/50">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold text-slate-100 truncate">{previewAttachment.name}</h3>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {previewAttachment.uploadedAt ? new Date(previewAttachment.uploadedAt).toLocaleString() : 'Vista previa inmediata'}
+                  {previewAttachment.uploadedBy ? ` · ${previewAttachment.uploadedBy}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={previewAttachment.dataUrl}
+                  download={previewAttachment.name}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors"
+                >
+                  Descargar
+                </a>
+                <button
+                  type="button"
+                  onClick={closeAttachmentPreview}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  aria-label="Cerrar vista previa"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 bg-slate-950/60 p-4">
+              {getPreviewKind(previewAttachment) === 'image' ? (
+                <div className="relative h-[70vh] overflow-auto rounded-2xl border border-slate-800 bg-slate-950 p-3">
+                  <Image
+                    src={previewAttachment.dataUrl}
+                    alt={previewAttachment.name}
+                    fill
+                    unoptimized
+                    className="object-contain rounded-xl shadow-lg"
+                  />
+                </div>
+              ) : getPreviewKind(previewAttachment) === 'pdf' || getPreviewKind(previewAttachment) === 'text' ? (
+                <iframe
+                  src={previewAttachment.dataUrl}
+                  title={previewAttachment.name}
+                  className="w-full h-[70vh] rounded-2xl border border-slate-800 bg-slate-950"
+                />
+              ) : (
+                <div className="h-[70vh] flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800 bg-slate-950 text-center px-6">
+                  <FileText size={36} className="text-slate-600 mb-3" />
+                  <p className="text-sm font-semibold text-slate-200">No hay vista previa disponible para este archivo.</p>
+                  <p className="text-xs text-slate-500 mt-2 max-w-md">
+                    Puedes descargarlo para abrirlo en tu equipo o subir una imagen, PDF o archivo de texto para verlo aquí.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
