@@ -9,36 +9,98 @@
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  /* Invert the slate color system so dark classes become bright, readable light mode styles */
-  --color-slate-50: #020617;   /* Deepest dark for text contrast */
-  --color-slate-100: #0f172a;  /* Dark slate for primary text */
-  --color-slate-200: #1e293b;  /* Medium slate for secondary text */
-  --color-slate-300: #334155;  /* Slate for body text */
-  --color-slate-450: #475569;  /* Label text */
-  --color-slate-400: #475569;
-  --color-slate-500: #64748b;  /* Icon slate */
-  --color-slate-600: #94a3b8;  /* Muted elements */
-  --color-slate-700: #cbd5e1;  /* Borders */
-  --color-slate-800: #e2e8f0;  /* Strong borders / dividing lines */
-  --color-slate-900: #f1f5f9;  /* Panel backgrounds (cards, input focus) */
-  --color-slate-950: #ffffff;  /* Primary background (sidebar, main layouts, cards) */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* --- OVERWRITE HARDCODED DARK STYLES TO BEAUTIFUL LIGHT MODE --- */
+
+/* Backgrounds */
+.bg-slate-950, 
+div[class*="bg-slate-950"], 
+aside,
+.bg-slate-900,
+div[class*="bg-slate-900"] {
+  background-color: #ffffff !important;
+}
+
+/* Kanban Columns & Inner containers (light gray panels) */
+div[class*="bg-slate-900/10"],
+div[class*="bg-slate-950/30"],
+div[class*="bg-slate-950/40"],
+.bg-slate-900\/10,
+.bg-slate-950\/30,
+.bg-slate-950\/40 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Kanban Cards and inputs (White with subtle borders and shadows) */
+.bg-slate-950,
+.bg-slate-900\/40,
+div[class*="bg-slate-900/40"] {
+  background-color: #ffffff !important;
+}
+
+/* Headers & Sidebar Layout borders */
+header,
+aside,
+div,
+section,
+border,
+.border-slate-800,
+.border-slate-900,
+div[class*="border-slate-"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Force dark, high-contrast typography */
+h1, h2, h3, h4, h5, h6, 
+.text-slate-100, 
+.text-slate-200, 
+.text-slate-300, 
+div[class*="text-slate-100"], 
+div[class*="text-slate-200"], 
+div[class*="text-slate-300"] {
+  color: #0f172a !important;
+}
+
+/* Legible gray for descriptions and secondary text labels */
+p, 
+span,
+label,
+.text-slate-400, 
+.text-slate-500,
+div[class*="text-slate-400"], 
+div[class*="text-slate-500"] {
+  color: #475569 !important;
+}
+
+/* Inputs, Selects and Textareas styling */
+input, 
+select, 
+textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Global button and links spacing/transitions */
+a, button {
+  transition: all 0.2s ease-in-out;
+}
+
 /* Accessible typography and icons */
 svg {
   stroke-width: 2.2px !important;
-}
-
-/* Ensure global links and buttons have correct state colors */
-a, button {
-  transition: all 0.2s ease-in-out;
 }
