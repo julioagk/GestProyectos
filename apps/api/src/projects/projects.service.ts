@@ -202,11 +202,7 @@ export class ProjectsService {
   }
 
   async deleteProject(companyId: string, userId: string, projectId: string) {
-    const project = await this.getProjectById(companyId, projectId); // Valida existencia
-
-    await this.prisma.project.delete({
-      where: { id: projectId },
-    });
+    const project = await this.getProjectById(companyId, projectId);
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     await this.activityLog.log({
@@ -215,6 +211,10 @@ export class ProjectsService {
       projectId,
       action: 'DELETE_PROJECT',
       description: `${user?.firstName} ${user?.lastName} eliminó el proyecto "${project.name}"`,
+    });
+
+    await this.prisma.project.delete({
+      where: { id: projectId },
     });
 
     return { success: true };
