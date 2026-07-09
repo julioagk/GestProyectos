@@ -121,10 +121,25 @@ export class ProjectsService {
         select: { teamId: true },
       });
       const teamIds = memberTeams.map(t => t.teamId);
+
+      // Check if the employee has at least one task assigned in this project
+      const hasTask = await this.prisma.task.findFirst({
+        where: {
+          projectId,
+          companyId,
+          responsibles: { some: { id: userId } },
+        },
+      });
+
+      // Allow access if employee belongs to the project's team OR has tasks in it
       whereClause = {
         id: projectId,
         companyId,
-        teamId: { in: teamIds },
+        OR: [
+          { teamId: { in: teamIds } },
+          // If project has no team or the employee has tasks here
+          ...(hasTask ? [{ id: projectId }] : []),
+        ],
       };
     }
 
