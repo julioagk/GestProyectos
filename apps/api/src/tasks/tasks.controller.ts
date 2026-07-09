@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, ForbiddenException, Query } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { AuthGuard } from '../auth/auth.guard';
@@ -21,8 +21,14 @@ export class TasksController {
   }
 
   @Get('project/:projectId')
-  findAll(@Req() req: any, @Param('projectId') projectId: string) {
-    return this.tasksService.getTasks(req.user.companyId, projectId, req.user.sub, req.user.role);
+  findAll(@Req() req: any, @Param('projectId') projectId: string, @Query('all') all?: string) {
+    const showAll = all === 'true';
+    return this.tasksService.getTasks(
+      req.user.companyId,
+      projectId,
+      showAll ? undefined : req.user.sub,
+      showAll ? undefined : req.user.role
+    );
   }
 
   @Get(':id')

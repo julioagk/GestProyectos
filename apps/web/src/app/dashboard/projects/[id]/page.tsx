@@ -103,6 +103,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const { confirm, showToast } = useDialog();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Task selection for detail Drawer
@@ -258,6 +259,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             if (reloadRes.ok) {
               const reloaded = await reloadRes.json();
               setSelectedTask(reloaded);
+              fetchProjectData();
             }
           }
         } else {
@@ -299,6 +301,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           if (reloadRes.ok) {
             const reloaded = await reloadRes.json();
             setSelectedTask(reloaded);
+            fetchProjectData();
           }
         }
       } else {
@@ -353,6 +356,20 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           return t;
         });
         setTasks(sanitizedTasks);
+      }
+
+      try {
+        const allTasksRes = await fetch(`${apiUrl}/tasks/project/${projectId}?all=true`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (allTasksRes.ok) {
+          const allTasksData = await allTasksRes.json();
+          if (Array.isArray(allTasksData)) {
+            setAllTasks(allTasksData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching all tasks for files:', err);
       }
 
       // Fetch teams to build the list of members (assignees)
@@ -1025,6 +1042,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         if (reloadRes.ok) {
           const reloaded = await reloadRes.json();
           setSelectedTask(reloaded);
+          fetchProjectData();
         }
       } else {
         showToast('Error al publicar comentario', 'error');
@@ -1036,7 +1054,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
   const getTaskEvidenceFiles = () => {
     const list: any[] = [];
-    tasks.forEach((task) => {
+    allTasks.forEach((task) => {
       // 1. Evidencias de los ChecklistItems
       if (Array.isArray(task.checklistItems)) {
         task.checklistItems.forEach((item) => {
