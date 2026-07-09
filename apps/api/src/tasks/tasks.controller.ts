@@ -5,7 +5,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { TenantGuard } from '../auth/tenant.guard';
 import { TaskStatus } from '../common/types';
 
-const CAN_CREATE_TASKS = ['MANAGER', 'COMPANY_ADMIN', 'SUPER_ADMIN'];
+const CAN_CREATE_TASKS = ['MANAGER', 'COMPANY_ADMIN', 'SUPER_ADMIN', 'EMPLOYEE'];
 
 @UseGuards(AuthGuard, TenantGuard)
 @Controller('tasks')

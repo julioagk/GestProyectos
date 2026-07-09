@@ -1139,7 +1139,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           </p>
         </div>
 
-        {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'SUPER_ADMIN') && (
+        {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'SUPER_ADMIN' || user?.role === 'EMPLOYEE') && (
         <button
           onClick={() => {
             setNewStatus('PENDING');
@@ -1314,7 +1314,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
               </div>
 
               {/* Quick Inline Task Creator */}
-              {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
+              {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN' || user?.role === 'EMPLOYEE') && (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

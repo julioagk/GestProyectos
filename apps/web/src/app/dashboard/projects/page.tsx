@@ -21,6 +21,7 @@ import {
   LayoutGrid
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDialog } from '../../../components/DialogProvider';
 
 interface Project {
@@ -57,6 +58,7 @@ const defaultProjectStages = [
 export default function ProjectsPage() {
   const { accessToken, user } = useAuthStore();
   const { confirm, showToast } = useDialog();
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [viewMode, setViewMode] = useState<'GRID' | 'STAGES'>('STAGES');
   const [projectStages, setProjectStages] = useState<{ id: string; name: string }[]>([]);
@@ -377,17 +379,21 @@ export default function ProjectsPage() {
       draggable
       onDragStart={(e) => handleProjectDragStart(e, project.id)}
       key={project.id}
-      className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 hover:border-slate-800/80 hover:bg-slate-900/50 transition-all flex flex-col justify-between group shadow-lg cursor-grab active:cursor-grabbing"
+      onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+      className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 hover:border-slate-800/80 hover:bg-slate-900/50 transition-all flex flex-col justify-between group shadow-lg cursor-pointer select-none"
     >
       <div>
         <div className="flex justify-between items-start gap-4">
-          <Link href={`/dashboard/projects/${project.id}`} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             <h3 className="font-bold text-slate-100 group-hover:text-emerald-400 transition-colors text-sm truncate">
               {project.name}
             </h3>
-          </Link>
+          </div>
           <button
-            onClick={(e) => handleDelete(e, project.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(e, project.id);
+            }}
             className="text-slate-600 hover:text-rose-400 p-1 rounded-lg hover:bg-rose-500/5 transition-all opacity-0 group-hover:opacity-100 shrink-0"
             title="Eliminar Proyecto"
           >
