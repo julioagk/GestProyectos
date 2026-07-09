@@ -187,6 +187,15 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const [docxRenderer, setDocxRenderer] = useState<any>(null);
+  const docxContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    import('docx-preview').then((mod) => {
+      setDocxRenderer(() => mod.renderAsync);
+    }).catch((err) => console.error('Error loading docx-preview:', err));
+  }, []);
+
   const getPreviewKind = (attachment: Pick<Attachment, 'mimeType' | 'name'>) => {
     const mimeType = attachment.mimeType?.toLowerCase() || '';
     const fileName = attachment.name.toLowerCase();
@@ -200,9 +209,64 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
     if (mimeType.startsWith('text/') || /\.(txt|md|csv|json|log|xml|yaml|yml)$/i.test(fileName)) {
       return 'text';
     }
+    if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      mimeType === 'application/msword' ||
+      /\.(docx|doc)$/i.test(fileName)
+    ) {
+      return 'docx';
+    }
 
     return 'unsupported';
   };
+
+  useEffect(() => {
+    let active = true;
+    if (previewAttachment && getPreviewKind(previewAttachment) === 'docx' && docxRenderer) {
+      const render = () => {
+        if (!docxContainerRef.current) {
+          if (active) {
+            requestAnimationFrame(render);
+          }
+          return;
+        }
+
+        try {
+          const dataUrl = previewAttachment.dataUrl;
+          const base64Prefix = 'base64,';
+          const base64Index = dataUrl.indexOf(base64Prefix);
+          let base64String = dataUrl;
+          if (base64Index !== -1) {
+            base64String = dataUrl.substring(base64Index + base64Prefix.length);
+          }
+
+          const binary = atob(base64String);
+          const arrayBuffer = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            arrayBuffer[i] = binary.charCodeAt(i);
+          }
+
+          docxContainerRef.current.innerHTML = '';
+          docxRenderer(arrayBuffer.buffer, docxContainerRef.current, null, {
+            inWrapper: false,
+            ignoreWidth: false,
+            ignoreHeight: false,
+          });
+        } catch (err) {
+          console.error('Error rendering docx:', err);
+          if (docxContainerRef.current) {
+            docxContainerRef.current.innerHTML = '<div class="text-rose-500 text-sm p-4 text-center">Error al procesar el archivo Word.</div>';
+          }
+        }
+      };
+
+      setTimeout(render, 50);
+    }
+    return () => {
+      active = false;
+    };
+  }, [previewAttachment, docxRenderer]);
+
 
   const openAttachmentPreview = (attachment: Attachment) => {
     setPreviewAttachment(attachment);
@@ -2263,7 +2327,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 <a
                   href={previewAttachment.dataUrl}
                   download={previewAttachment.name}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-colors active:scale-[0.98]"
                 >
                   Descargar
                 </a>
@@ -2294,6 +2358,11 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   src={previewAttachment.dataUrl}
                   title={previewAttachment.name}
                   className="w-full h-[70vh] rounded-2xl border border-slate-800 bg-slate-950"
+                />
+              ) : getPreviewKind(previewAttachment) === 'docx' ? (
+                <div
+                  ref={docxContainerRef}
+                  className="w-full h-[70vh] overflow-auto rounded-2xl border border-slate-800 bg-white p-6 text-black docx-container"
                 />
               ) : (
                 <div className="h-[70vh] flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800 bg-slate-950 text-center px-6">
