@@ -430,4 +430,29 @@ export class ProjectsService {
       // Silencioso
     }
   }
+
+  async addProjectFile(projectId: string, dto: { name: string; dataUrl: string; mimeType: string; sizeBytes: number }) {
+    return this.prisma.file.create({
+      data: {
+        name: dto.name,
+        url: dto.dataUrl,
+        key: `${projectId}-${Date.now()}-${dto.name}`,
+        mimeType: dto.mimeType,
+        sizeBytes: dto.sizeBytes,
+        projectId,
+      },
+    });
+  }
+
+  async deleteProjectFile(projectId: string, fileId: string) {
+    const file = await this.prisma.file.findFirst({
+      where: { id: fileId, projectId },
+    });
+    if (!file) {
+      throw new NotFoundException('El archivo no existe o no pertenece a este proyecto');
+    }
+    return this.prisma.file.delete({
+      where: { id: fileId },
+    });
+  }
 }

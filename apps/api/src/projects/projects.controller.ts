@@ -43,4 +43,17 @@ export class ProjectsController {
   findActivity(@Req() req: any, @Param('id') id: string) {
     return this.projectsService.getProjectActivity(req.user.companyId, id);
   }
+
+  @Post(':id/files')
+  addFile(
+    @Param('id') projectId: string,
+    @Body() dto: { name: string; dataUrl: string; mimeType: string; sizeBytes: number }
+  ) {
+    return this.projectsService.addProjectFile(projectId, dto);
+  }
+
+  @Delete(':id/files/:fileId')
+  deleteFile(@Param('id') projectId: string, @Param('fileId') fileId: string) {
+    return this.projectsService.deleteProjectFile(projectId, fileId);
+  }
 }

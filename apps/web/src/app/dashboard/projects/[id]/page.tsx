@@ -171,14 +171,6 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         setDefaultCols();
       }
 
-      // Load files
-      const fileKey = `project-files-${projectId}`;
-      const storedFiles = localStorage.getItem(fileKey);
-      if (storedFiles) {
-        try { setProjectFiles(JSON.parse(storedFiles)); } catch {}
-      } else {
-        setProjectFiles([]);
-      }
     }
   }, [projectId]);
 
@@ -325,6 +317,19 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       const projData = await projRes.json();
       setProject(projData);
       setProjectTeamId(projData.teamId || null);
+      if (projData.files) {
+        setProjectFiles(projData.files.map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          dataUrl: f.url,
+          mimeType: f.mimeType,
+          size: f.sizeBytes,
+          uploadedAt: f.createdAt,
+          uploadedBy: 'Colaborador',
+        })));
+      } else {
+        setProjectFiles([]);
+      }
 
       // Tasks info
       const tasksRes = await fetch(`${apiUrl}/tasks/project/${projectId}`, {
@@ -1380,22 +1385,32 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                     const file = e.target.files?.[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = () => {
-                      const newFile = {
-                        id: Date.now().toString(),
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type,
-                        dataUrl: reader.result as string,
-                        uploadedAt: new Date().toISOString(),
-                        uploadedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
-                      };
-                      const updated = [newFile, ...projectFiles];
-                      setProjectFiles(updated);
-                      if (typeof window !== 'undefined') {
-                        localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
+                    reader.onload = async () => {
+                      const dataUrl = reader.result as string;
+                      try {
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                        const res = await fetch(`${apiUrl}/projects/${projectId}/files`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${accessToken}`,
+                          },
+                          body: JSON.stringify({
+                            name: file.name,
+                            dataUrl,
+                            mimeType: file.type,
+                            sizeBytes: file.size,
+                          }),
+                        });
+                        if (res.ok) {
+                          showToast(`Archivo "${file.name}" subido con éxito`, 'success');
+                          fetchProjectData();
+                        } else {
+                          showToast('Error al subir el archivo al servidor', 'error');
+                        }
+                      } catch {
+                        showToast('Error de conexión al subir archivo', 'error');
                       }
-                      showToast(`Archivo "${file.name}" subido con éxito`, 'success');
                     };
                     reader.readAsDataURL(file);
                     e.target.value = '';
@@ -1448,13 +1463,24 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       </a>
                       {(user?.role === 'MANAGER' || user?.role === 'COMPANY_ADMIN') && (
                         <button
-                          onClick={() => {
-                            const updated = projectFiles.filter((f) => f.id !== file.id);
-                            setProjectFiles(updated);
-                            if (typeof window !== 'undefined') {
-                              localStorage.setItem(`project-files-${projectId}`, JSON.stringify(updated));
+                          onClick={async () => {
+                            try {
+                              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+                              const res = await fetch(`${apiUrl}/projects/${projectId}/files/${file.id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                  Authorization: `Bearer ${accessToken}`,
+                                },
+                              });
+                              if (res.ok) {
+                                showToast('Archivo eliminado', 'success');
+                                fetchProjectData();
+                              } else {
+                                showToast('Error al eliminar el archivo en el servidor', 'error');
+                              }
+                            } catch {
+                              showToast('Error de conexión al eliminar archivo', 'error');
                             }
-                            showToast('Archivo eliminado', 'success');
                           }}
                           className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 transition-all"
                           title="Eliminar"
