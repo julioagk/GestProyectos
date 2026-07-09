@@ -300,7 +300,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-slate-300 leading-normal">{log.description}</p>
                   <span className="text-[10px] text-slate-500 mt-1 block">
-                    {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(log.createdAt).toLocaleDateString([], { day: '2-digit', month: '2-digit', year: '2-digit' })} · {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               </div>
