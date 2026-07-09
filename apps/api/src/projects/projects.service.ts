@@ -115,33 +115,9 @@ export class ProjectsService {
     const isEmployee = userRole === 'EMPLOYEE';
     let whereClause: any = { id: projectId, companyId };
 
-    if (isEmployee && userId) {
-      const memberTeams = await this.prisma.teamMember.findMany({
-        where: { userId },
-        select: { teamId: true },
-      });
-      const teamIds = memberTeams.map(t => t.teamId);
+    // Employees can view any project in their company (files, comments, etc.)
+    // Security is already enforced by companyId scope
 
-      // Check if the employee has at least one task assigned in this project
-      const hasTask = await this.prisma.task.findFirst({
-        where: {
-          projectId,
-          companyId,
-          responsibles: { some: { id: userId } },
-        },
-      });
-
-      // Allow access if employee belongs to the project's team OR has tasks in it
-      whereClause = {
-        id: projectId,
-        companyId,
-        OR: [
-          { teamId: { in: teamIds } },
-          // If project has no team or the employee has tasks here
-          ...(hasTask ? [{ id: projectId }] : []),
-        ],
-      };
-    }
 
     const project = await this.prisma.project.findFirst({
       where: whereClause,
